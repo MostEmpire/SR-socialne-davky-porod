@@ -134,6 +134,7 @@ button.btn:disabled{opacity:.45;cursor:not-allowed}
 @media (max-width:820px){.seg-row{grid-template-columns:1fr 1fr}.seg-row .del{grid-column:2;justify-self:end}}
 .seg-row{transition:background .12s,box-shadow .12s}
 .seg-row.hl{background:color-mix(in srgb,var(--hlc,var(--gov)) 14%,#fafbfc);box-shadow:inset 3px 0 0 var(--hlc,var(--gov))}
+.bar .seg.hl{opacity:1;filter:brightness(1.07);box-shadow:0 0 0 1.5px #fff,0 0 0 3.5px var(--hlc,var(--gov))}
 .seg-row .lb{font-size:10px;color:var(--muted);display:block;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
 .seg-row .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:0}
 button.icon{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:15px;padding:5px 7px;border-radius:4px}
@@ -845,21 +846,32 @@ window.addSeg=(si,kto)=>{
   if(bs<0){bs=0;bl=Math.min(DN,180);}
   s[kto].segs.push({id:uid++,typ:"zamestnanec",vz:1200,od:iso(addD(W0,bs)),do:iso(addD(W0,bs+bl-1))});render();};
 
-/* ── hover nad obdobím v osi zvýrazní jeho detailný riadok farbou obdobia ── */
+/* ── obojsmerný hover: obdobie v osi ↔ jeho detailný riadok, zvýraznené farbou obdobia ── */
 document.addEventListener("mouseover",e=>{
-  const seg=e.target.closest?e.target.closest(".bar .seg"):null;
-  if(!seg||seg.dataset.i===undefined)return;
-  const bar=seg.closest(".bar");if(!bar||bar.dataset.si===undefined)return;
-  const row=document.getElementById("segrow_"+bar.dataset.si+"_"+bar.dataset.kto+"_"+seg.dataset.i);
-  if(!row)return;
-  const sg=APP.scenare[+bar.dataset.si][bar.dataset.kto].segs[+seg.dataset.i];
-  row.classList.add("hl");
-  row.style.setProperty("--hlc",sg?ZDROJE[sg.typ].f:"var(--gov)");
+  if(!e.target.closest)return;
+  const seg=e.target.closest(".bar .seg");
+  if(seg&&seg.dataset.i!==undefined){
+    const bar=seg.closest(".bar");if(!bar||bar.dataset.si===undefined)return;
+    const row=document.getElementById("segrow_"+bar.dataset.si+"_"+bar.dataset.kto+"_"+seg.dataset.i);
+    if(!row)return;
+    const sg=APP.scenare[+bar.dataset.si][bar.dataset.kto].segs[+seg.dataset.i];
+    row.classList.add("hl");
+    row.style.setProperty("--hlc",sg?ZDROJE[sg.typ].f:"var(--gov)");
+    return;
+  }
+  const row=e.target.closest(".seg-row");
+  if(!row||!/^segrow_/.test(row.id))return;
+  const[,si,kto,i]=row.id.split("_");
+  const el=document.querySelector("#bar_"+si+"_"+kto+' .seg[data-i="'+i+'"]');
+  if(!el)return;
+  const sg=APP.scenare[+si]&&APP.scenare[+si][kto].segs[+i];
+  el.classList.add("hl");
+  el.style.setProperty("--hlc",sg?ZDROJE[sg.typ].f:"var(--gov)");
 });
 document.addEventListener("mouseout",e=>{
-  const seg=e.target.closest?e.target.closest(".bar .seg"):null;
-  if(!seg)return;
-  document.querySelectorAll(".seg-row.hl").forEach(r=>r.classList.remove("hl"));
+  if(!e.target.closest)return;
+  if(e.target.closest(".bar .seg"))document.querySelectorAll(".seg-row.hl").forEach(r=>r.classList.remove("hl"));
+  if(e.target.closest(".seg-row"))document.querySelectorAll(".bar .seg.hl").forEach(r=>r.classList.remove("hl"));
 });
 
 /* ── ťahanie myšou na časovej osi ──
