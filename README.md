@@ -6,6 +6,8 @@ This repository contains a static webpage that can be used by parents living in 
 
 It is possibly the best source for Slovak population to get an insight into what the Slovak social system makes available for the families in wide range of situations. Parents can understand the amount of benefit payments they can receive, when they receive them and what conditions they need to meet. This calculator/simulator can replace informational visits to the social insurance office and social affairs office.
 
+Available live here: http://mostempire.github.io/SR-socialne-davky-porod
+
 # O tejto kalkulačke
 Jedná sa o čiastočne kalkulačku a čiastočne simulátor. Údaje s ktorými systém pracuje sú platné podľa aktuálnych znení všetkých relevantných zákonov ku dňu 20. Aug. 2026. Tieto zákony sa môžu novelizovať zhruba raz za rok. Aktuálne ceny s ktorými kalkulačka pracuje sú tiež platné pre rok 2026. Do budúcnosti na tom veľmi nezáleží, pretože aj keď eurová cena dávok sa bude každý rok zvyšovať, ich kúpna sila bude zhruba rovnaká ako teraz.
 
