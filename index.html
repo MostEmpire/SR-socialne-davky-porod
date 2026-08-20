@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sociálny systém SR — Dávky pre novo narodené dieťa</title>
+<style>
+:root{
+  --gov:#274268; --gov2:#154873; --red:#a71e22;
+  --bg:#f3f4f6; --card:#ffffff; --fg:#1c2226; --muted:#5b6770; --line:#d5dde3;
+  --ok:#166938; --ok-soft:#e6f3ea; --warn:#8a5a00; --warn-soft:#fdf3dd;
+  --err:#a71e22; --err-soft:#f9e9e9; --cond:#154873; --cond-soft:#e8f0f7;
+  --c-zam:#166938; --c-szco:#8a5a00; --c-dobr:#5b3f8f; --c-stud:#154873; --c-rd:#5b6770; --c-sil:#0b6e8a;
+  --r:6px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Source Sans Pro","Segoe UI",system-ui,sans-serif}
+a{color:var(--gov2)}
+/* ── vládny pruh ── */
+.govhead{position:relative;background:#fff;padding-top:27px;margin-bottom:34px}
+.govstrip{background:var(--gov);height:51px;position:relative}
+.govinner{max-width:1180px;margin:0 auto;position:relative;height:51px}
+.emblem{position:absolute;left:24px;top:-17px;height:88px;width:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.govtxt{position:absolute;left:112px;top:5px;color:#fff;font-size:11px;line-height:1.28;letter-spacing:.6px;font-weight:600}
+.govdiv{position:absolute;left:236px;top:7px;bottom:7px;width:1px;background:rgba(255,255,255,.85)}
+.govtitle{position:absolute;left:252px;top:0;height:51px;display:flex;align-items:center;color:#fff;font-size:17.5px;font-weight:400;letter-spacing:.2px}
+@media (max-width:640px){.govtitle{font-size:13.5px;left:244px;padding-right:8px}.govtxt{font-size:9.5px}}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 90px}
+/* ── panel nástrojov ── */
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.toolbar .t{font-size:13px;color:var(--muted)}
+/* ── scenárový blok ── */
+.blok{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 1px 3px rgba(28,34,38,.07);margin-bottom:0}
+.blok-head{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:#fafbfc;border-radius:var(--r) var(--r) 0 0}
+.blok-head .nm{font-weight:700;font-size:15px;color:var(--gov)}
+.blok-head .st{font-size:12px;color:var(--muted)}
+.blok-body{padding:22px 24px}
+.blok-foot{display:flex;justify-content:flex-end;gap:8px;padding:8px 14px;border-top:1px solid var(--line);background:#fafbfc;border-radius:0 0 var(--r) var(--r);margin-bottom:14px}
+.addblok{display:block;width:100%;padding:13px;margin:2px 0 24px;border:1.5px dashed var(--gov);background:#fff;color:var(--gov);
+  font:inherit;font-weight:700;font-size:14px;border-radius:var(--r);cursor:pointer;transition:.15s}
+.addblok:hover{background:var(--cond-soft)}
+/* ── kroky ── */
+.kroky{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px}
+.kroky .k{flex:1 1 80px;min-width:76px;padding:6px 8px;font-size:11px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:4px;display:flex;gap:6px;align-items:center;cursor:pointer}
+.kroky .k .n{width:17px;height:17px;border-radius:50%;background:var(--line);color:var(--muted);display:grid;place-items:center;font-size:10px;font-weight:700;flex:none}
+.kroky .k.act{border-color:var(--gov);color:var(--gov);font-weight:700;background:var(--cond-soft)}
+.kroky .k.act .n{background:var(--gov);color:#fff}
+.kroky .k.done{color:var(--ok)}
+.kroky .k.done .n{background:var(--ok);color:#fff}
+h2{font-size:19px;margin:0 0 4px;color:var(--gov)}
+h3{font-size:14.5px;margin:22px 0 8px;color:var(--gov)}
+h3:first-child{margin-top:0}
+.lead{color:var(--muted);margin:0 0 18px;font-size:13.5px}
+label.q{display:block;font-weight:700;font-size:13.5px;margin:16px 0 7px}
+.hint{color:var(--muted);font-size:12px;margin:5px 0 0}
+.cit{font-size:10.5px;color:var(--muted)}
+/* voľby */
+.choices{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.choices.c4{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.choice{border:1.5px solid var(--line);background:#fff;border-radius:4px;padding:10px 12px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:.12s}
+.choice:hover{border-color:var(--gov)}
+.choice.sel{border-color:var(--gov);background:var(--cond-soft);box-shadow:inset 3px 0 0 var(--gov)}
+.choice .t{display:block;font-weight:700;font-size:13px}
+.choice .d{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+input[type=text],input[type=number],select{font:inherit;color:inherit;background:#fff;border:1.5px solid #8a949c;border-radius:4px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:2.5px solid #ffd94d;outline-offset:0;border-color:var(--gov)}
+input.dt{max-width:150px;letter-spacing:.5px}
+input.dt.bad{border-color:var(--err);background:var(--err-soft)}
+input.dt.okk{border-color:var(--ok)}
+.inline{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.inline>*{flex:1 1 130px}
+.suffix{position:relative}
+.suffix input{padding-right:56px}
+.suffix span{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11.5px;pointer-events:none}
+.switch{display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:10px 12px;border:1.5px solid var(--line);border-radius:4px;margin-top:8px;background:#fff}
+.switch:hover{border-color:var(--gov)}
+.switch.on{border-color:var(--gov);background:var(--cond-soft)}
+.switch input{margin:2px 0 0;accent-color:var(--gov);width:16px;height:16px;flex:none}
+.switch .t{font-weight:700;font-size:12.5px;display:block}
+.switch .d{font-size:11.5px;color:var(--muted)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px}
+button.btn{font:inherit;font-weight:700;font-size:13.5px;border-radius:4px;padding:10px 20px;border:1.5px solid var(--gov);background:#fff;color:var(--gov);cursor:pointer}
+button.btn:hover{background:var(--cond-soft)}
+button.btn.primary{background:var(--gov);color:#fff}
+button.btn.primary:hover{background:var(--gov2)}
+button.btn.danger{border-color:var(--red);color:var(--red)}
+button.btn.danger:hover{background:var(--err-soft)}
+button.btn.sm{padding:6px 13px;font-size:12px}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:10px 13px;font-size:12px;margin-top:12px;border-left:3px solid var(--warn)}
+.info{background:var(--cond-soft);color:var(--cond);border-radius:4px;padding:10px 13px;font-size:12px;margin-top:12px;border-left:3px solid var(--cond)}
+/* ── timeline editor ── */
+.tl-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px;
+  /* kompenzácia vizuálneho posunu .podm-blok — stiahne mŕtvy priestor pod odsekom .lead */
+  margin-top:calc(6px - var(--podm-posun,34px))}
+.tl-count{font-size:12.5px;color:var(--muted)}
+.tl-count b{font-size:19px;color:var(--fg)}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
+.meter i{display:block;height:100%;background:var(--err);border-radius:99px}
+.meter.ok i{background:var(--ok)}
+.bar{position:relative;height:56px;border-radius:4px;background:#fff;border:1.5px solid #8a949c;margin-top:10px;touch-action:none;user-select:none;cursor:crosshair;overflow:hidden}
+.bar .seg{position:absolute;top:8px;bottom:8px;opacity:.92;border-radius:3px;cursor:grab;overflow:hidden;display:grid;place-items:center}
+.bar .seg span{font-size:9.5px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.45);white-space:nowrap;pointer-events:none}
+.bar .seg .h{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize}
+.bar .seg .h.l{left:0}.bar .seg .h.r{right:0}
+.bar .distcol{position:absolute;bottom:0;width:2px;background:var(--red);opacity:.65;pointer-events:none;z-index:3}
+.bar .mark{position:absolute;top:0;bottom:0;width:2px;background:var(--fg);opacity:.55;pointer-events:none}
+.bar .vl{position:absolute;top:0;bottom:0;width:2px;pointer-events:none;z-index:3}
+.bar .ro{position:absolute;bottom:3px;height:0;border-bottom:3px dotted var(--gov2);pointer-events:none;z-index:4}
+.bar .vyl{position:absolute;top:0;bottom:0;background:rgba(255,255,255,.6);border-left:2px dashed var(--muted);pointer-events:none;z-index:2}
+.tlmarks{position:relative;height:20px;font-size:10px;margin-top:12px}
+.tlmarks .m{position:absolute;transform:translateX(-50%);white-space:nowrap;padding:1px 7px;border-radius:3px;font-weight:700}
+.tlmarks .m.edge{transform:translateX(-100%)}
+.podm-lbl{font-size:12px;color:var(--muted);margin-top:8px}
+.podm-lbl b{font-size:15px;color:var(--fg)}
+/* blok podmienok: samostatný element posúvateľný k časovej osi cez --podm-posun;
+   transform nemení tok dokumentu, takže tlačidlá ani štítky osi neovplyvňuje */
+.podm-blok{transform:translateY(var(--podm-posun,34px))}
+@media (max-width:900px){.podm-blok{transform:none}.tl-head{margin-top:0}}
+.ben.prob .amt{color:var(--warn)!important}
+.tag.prob{background:var(--warn-soft);color:var(--warn)}
+.kroky .k{cursor:default;margin-top:0}
+.kroky .k.klik{cursor:pointer}
+.kroky .k.klik:hover{border-color:var(--gov)}
+.bar-ax{position:relative;height:16px;font-size:10.5px;color:var(--muted);margin-top:4px}
+.bar-ax span{position:absolute;white-space:nowrap}
+.bar-ax .c{transform:translateX(-50%);font-weight:700;color:var(--fg)}
+.bar-ax .p{transform:translateX(-100%);color:var(--red);font-weight:700}
+.legend{display:flex;gap:11px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.seg-list{margin-top:14px;display:grid;gap:8px}
+.seg-row{display:grid;gap:8px;align-items:end;border:1px solid var(--line);border-radius:4px;padding:10px;background:#fafbfc;
+  grid-template-columns:.9fr .9fr 1.35fr .9fr .9fr 32px}
+@media (max-width:820px){.seg-row{grid-template-columns:1fr 1fr}.seg-row .del{grid-column:2;justify-self:end}}
+.seg-row{transition:background .12s,box-shadow .12s}
+.seg-row.hl{background:color-mix(in srgb,var(--hlc,var(--gov)) 14%,#fafbfc);box-shadow:inset 3px 0 0 var(--hlc,var(--gov))}
+.seg-row .lb{font-size:10px;color:var(--muted);display:block;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.seg-row .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:0}
+button.icon{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:15px;padding:5px 7px;border-radius:4px}
+button.icon:hover{background:var(--err-soft);color:var(--err)}
+.empty{padding:16px;text-align:center;color:var(--muted);font-size:12.5px;border:1.5px dashed var(--line);border-radius:4px;margin-top:12px}
+/* ── výsledky ── */
+.hero{border-radius:var(--r);padding:20px 24px;color:#fff;background:linear-gradient(120deg,var(--gov),var(--gov2));cursor:pointer}
+.hero .lbl{font-size:12px;opacity:.85}
+.hero .big{font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin:1px 0 3px}
+.hero .sub{font-size:12.5px;opacity:.92}
+.hero-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.3)}
+.hero-grid .k{font-size:11px;opacity:.85}
+.hero-grid .v{font-size:16.5px;font-weight:700}
+.hero .fold{float:right;font-size:12px;opacity:.85;border:1px solid rgba(255,255,255,.5);border-radius:3px;padding:2px 9px}
+.vysl{margin-top:14px}
+.ben{border:1px solid var(--line);border-radius:4px;padding:13px 16px;margin-bottom:9px;background:#fafbfc}
+.ben.no{opacity:.72}
+.ben .bh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.ben .bt{font-weight:700;font-size:14px;color:var(--gov)}
+.ben .bsub{font-size:11px;color:var(--muted)}
+.ben .amt{font-weight:800;font-size:16.5px;white-space:nowrap}
+.ben.yes .amt{color:var(--ok)}
+.ben.cond .amt{color:var(--cond)}
+.tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.tag.yes{background:var(--ok-soft);color:var(--ok)}
+.tag.no{background:var(--err-soft);color:var(--err)}
+.tag.cond{background:var(--cond-soft);color:var(--cond)}
+.ben ul{margin:8px 0 0;padding-left:15px;font-size:12px;color:var(--muted)}
+.ben li{margin:3px 0}
+.ben li b{color:var(--fg)}
+.ben li.fail{color:var(--err)}
+.ben li.condi{color:var(--cond)}
+.gantt .row{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center;margin-bottom:7px}
+@media (max-width:640px){.gantt .row{grid-template-columns:1fr;gap:2px}}
+.gantt .nm{font-size:11.5px;color:var(--muted);font-weight:600}
+.gantt .track{position:relative;height:22px;background:#fff;border-radius:3px;border:1px solid var(--line)}
+.gantt .fill{position:absolute;top:0;bottom:0;border-radius:3px;display:grid;place-items:center}
+.gantt .fill span{font-size:9.5px;font-weight:700;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.gantt .pt{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;border:2px solid #fff}
+.vline{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--muted);opacity:.5;z-index:2}
+.vline.now{border-color:var(--fg)}
+.vline.pdd{border-color:var(--red);opacity:.9}
+.marks{position:relative;height:20px;margin-left:180px;margin-bottom:3px}
+@media (max-width:640px){.marks{margin-left:0}}
+.marks .m{position:absolute;font-size:10px;font-weight:700;transform:translateX(-50%);white-space:nowrap;padding:1px 7px;border-radius:3px}
+.marks .m.now{background:var(--fg);color:#fff}
+.marks .m.pdd{background:var(--red);color:#fff}
+svg.chart{width:100%;height:210px;display:block}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+tr.tot td{font-weight:800;border-bottom:none;border-top:2px solid var(--line)}
+.scrollx{overflow-x:auto}
+details{border:1px solid var(--line);border-radius:4px;padding:10px 14px;margin-top:12px;background:#fafbfc}
+summary{cursor:pointer;font-weight:700;font-size:12.5px;color:var(--gov)}
+details[open] summary{margin-bottom:8px}
+details .kv{display:grid;grid-template-columns:1fr auto;gap:3px 14px;font-size:11.5px;color:var(--muted)}
+details .kv b{color:var(--fg)}
+.karta{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:26px;line-height:1.7}
+/* ══ mobil — rovnaká skúsenosť na malej obrazovke ══ */
+@media (max-width:640px){
+  .wrap{padding:0 10px 60px}
+  .govhead{margin-bottom:22px;padding-top:8px}
+  .govstrip{height:auto}
+  .govinner{height:auto;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 60px;min-height:46px}
+  .emblem{height:52px;left:5px;top:50%;transform:translateY(-46%)}
+  .govtxt{position:static;font-size:8px;line-height:1.25;flex:none;letter-spacing:.4px}
+  .govdiv{position:static;width:1px;align-self:stretch;margin:2px 0}
+  .govtitle{position:static;height:auto;font-size:12.5px;line-height:1.25}
+  .toolbar{justify-content:center;text-align:center}
+  .blok-head{padding:10px 12px}
+  .blok-body{padding:14px 12px}
+  .karta{padding:14px 12px}
+  h2{font-size:17px}
+  .lead{font-size:13px}
+  .kroky .k{min-width:62px;font-size:10px;padding:7px 6px}
+  input[type=text],input[type=number],select{font-size:16px}  /* iOS nepriblíži formulár */
+  input.dt{max-width:none}
+  /* časová os: pozičné štítky prejdú do tečúceho riadka, aby sa neprekrývali */
+  .tlmarks{height:auto;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .tlmarks .m,.tlmarks .m.edge{position:static;transform:none!important}
+  .bar-ax{height:auto;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:9.5px}
+  .bar-ax span,.bar-ax .c,.bar-ax .p{position:static;transform:none!important}
+  .legend{font-size:10px;gap:8px}
+  .seg-row{grid-template-columns:1fr 1fr;padding:8px}
+  .hero{padding:16px 14px}
+  .hero .big{font-size:28px}
+  .hero .fold{font-size:11px}
+  .hero-grid{gap:10px;grid-template-columns:1fr 1fr}
+  .ben{padding:11px 12px}
+  .ben .amt{font-size:15px}
+  .nav{flex-wrap:wrap}
+  .nav .btn{flex:1 1 auto}
+  footer{font-size:10px}
+}
+/* dotykové ovládanie: väčšia os aj úchopy hrán */
+@media (pointer:coarse){
+  .bar{height:64px}
+  .bar .seg .h{width:16px}
+  .kroky .k{padding:9px 8px}
+  button.icon{font-size:18px;padding:8px 10px}
+}
+</style>
+</head>
+<body>
+
+<header class="govhead">
+  <div class="govstrip"><div class="govinner">
+    <svg class="emblem" viewBox="106 25 76 100" xmlns="http://www.w3.org/2000/svg" aria-label="Štátny znak SR">
+      <defs><clipPath id="stit"><path d="M143.9,113.7c-13.9-6.6-33.8-19.9-33.8-46.2s1.2-38.2,1.2-38.2h65s1.2,12,1.2,38.2-19.8,39.5-33.8,46.2Z"/></clipPath></defs>
+      <path fill="#a71e22" d="M143.9,113.7c-13.9-6.7-33.8-20-33.8-46.2s1.2-38.2,1.2-38.2h65s1.2,11.9,1.2,38.2-19.8,39.5-33.8,46.2Z"/>
+      <g clip-path="url(#stit)">
+        <path fill="#fff" stroke="#000" stroke-miterlimit="3" d="M146.9,60.6c3.8,0,11.1.2,17.6-2,0,0-.2,2.3-.2,5s.2,5,.2,5c-6-2-13.4-2-17.7-2v14.5h-5.9v-14.5c-4.2,0-11.6,0-17.6,2,0,0,.1-2.3.1-5s-.1-5-.1-5c6.6,2.2,13.9,2,17.6,2v-9.1c-3.5,0-8.4.1-14,2,0,0,.1-2.4.1-5s-.1-5.1-.1-5.1c5.5,1.8,10.5,2.1,14,2-.2-5.8-1.9-13.1-1.9-13.1,0,0,3.4.2,4.9.2s4.8-.2,4.8-.2c0,0-1.7,7.2-1.8,13.1,3.5,0,8.4-.1,14-2,0,0-.2,2.4-.2,5s.2,5,.2,5c-5.6-1.9-10.5-2-14-2v9.1h0Z"/>
+        <path fill="#154873" fill-rule="evenodd" stroke="#000" stroke-miterlimit="3" d="M143.3,122.3l-28.8-25.7s3.7-11.9,10.9-11.9,7.8,4.6,7.8,4.6c0,0,3.8-9.7,10.8-9.7s10.8,9.7,10.8,9.7c0,0,2.1-4.6,7.8-4.6s10.9,11.9,10.9,11.9l-30,25.7Z"/>
+      </g>
+      <path fill="none" stroke="#000" stroke-miterlimit="3" d="M143.9,113.7c-13.9-6.7-33.8-20-33.8-46.2s1.2-38.2,1.2-38.2h65s1.2,11.9,1.2,38.2-19.8,39.5-33.8,46.2Z"/>
+    </svg>
+    <div class="govtxt">SOCIÁLNY SYSTÉM<br>SLOVENSKEJ<br>REPUBLIKY</div>
+    <div class="govdiv"></div>
+    <div class="govtitle">Dávky pre novo narodené dieťa</div>
+  </div></div>
+</header>
+
+<div class="wrap">
+  <div class="toolbar">
+    <div class="t">Porovnajte viac scenárov — každý blok je samostatný výpočet. Údaje neopúšťajú váš počítač.</div>
+    <div>
+      <button class="btn sm" onclick="exportJSON()">⬇ Export scenárov (JSON)</button>
+      <button class="btn sm" onclick="document.getElementById('impf').click()">⬆ Import</button>
+      <input type="file" id="impf" accept=".json,application/json" style="display:none" onchange="importJSON(this)">
+    </div>
+  </div>
+  <div id="bloky"></div>
+  <button class="addblok" onclick="pridajScenar()">＋ Pridať scenár</button>
+  <footer>
+    Orientačný výpočet podľa konsolidovaných znení k 18.&nbsp;8.&nbsp;2026 (461/2003, 383/2013, 571/2009, 600/2003, 561/2008, 627/2005, 201/2008, 417/2013, 595/2003, 544/2010, 131/2002, 245/2008, 447/2008, 238/1998, 328/2002, 580/2004, 311/2001 Z.&nbsp;z.).
+    O dávkach záväzne rozhoduje Sociálna poisťovňa, ÚPSVaR, resp. správca dane.<br>
+  </footer>
+</div>
+
+<script src="data/rules.js"></script>
+<script>
+"use strict";
+const RB=window.RULEBASE, P=RB.parametre;
+
+/* ═══ dátumové pomôcky ═══ */
+const DAY=86400000,_t=new Date();
+const TODAY=Date.UTC(_t.getFullYear(),_t.getMonth(),_t.getDate());
+const iso=ts=>new Date(ts).toISOString().slice(0,10);
+const fromIso=s=>{const p=String(s).split("-").map(Number);return Date.UTC(p[0],p[1]-1,p[2]);};
+const addD=(t,n)=>t+n*DAY, addW=(t,n)=>t+n*7*DAY;
+const addM=(t,n)=>{const d=new Date(t),y=d.getUTCFullYear(),m=d.getUTCMonth()+n,dd=d.getUTCDate();const last=new Date(Date.UTC(y,m+1,0)).getUTCDate();return Date.UTC(y,m,Math.min(dd,last));};
+const addY=(t,n)=>addM(t,12*n);
+const dDiff=(a,b)=>Math.round((b-a)/DAY);
+const rok=t=>new Date(t).getUTCFullYear();
+const eur=n=>new Intl.NumberFormat("sk-SK",{style:"currency",currency:"EUR"}).format(n||0);
+const eur0=n=>new Intl.NumberFormat("sk-SK",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(n||0);
+const dtxt=t=>new Intl.DateTimeFormat("sk-SK",{day:"numeric",month:"long",year:"numeric"}).format(new Date(t));
+const fmtD=t=>{const d=new Date(t);return String(d.getUTCDate()).padStart(2,"0")+"."+String(d.getUTCMonth()+1).padStart(2,"0")+"."+d.getUTCFullYear();};
+const parseDMY=s=>{const m=/^\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})\s*$/.exec(s||"");if(!m)return null;
+  const d=+m[1],mo=+m[2],y=+m[3];if(y<1950||y>2100||mo<1||mo>12||d<1||d>31)return null;
+  const ts=Date.UTC(y,mo-1,d);const dd=new Date(ts);
+  return(dd.getUTCDate()===d&&dd.getUTCMonth()===mo-1)?ts:null;};
+const r10c=n=>Math.round(n*10)/10;
+
+const ZDROJE={
+  zamestnanec:{n:"Zamestnanec",f:"var(--c-zam)",vz:true,vzLbl:"hrubá mzda",sadzba:0.014,sadzbaLbl:"1,4 % (NP zamestnanca)",poc270m:true,poc270t:true,trvanie:true},
+  szco:{n:"Povinne poistená SZČO",f:"var(--c-szco)",vz:true,vzLbl:"vymeriavací základ",sadzba:0.3315,sadzbaLbl:"33,15 % (odvody SZČO)",poc270m:true,poc270t:true,trvanie:true},
+  dobrovolne:{n:"Dobrovoľné poistenie",f:"var(--c-dobr)",vz:true,vzLbl:"zvolený základ",sadzba:0.3315,sadzbaLbl:"33,15 % (balík)",poc270m:true,poc270t:true,trvanie:true},
+  studiumUkoncene:{n:"Štúdium (získaný titul/maturita)",f:"var(--c-stud)",vz:false,poc270m:true,poc270t:false,trvanie:false},
+  rodicovskaDovolenka:{n:"Rodičovská dovolenka",f:"var(--c-rd)",vz:false,poc270m:true,poc270t:true,trvanie:"drzi"},
+  statnaSluzba:{n:"Štátna služba (policajt/vojak)",f:"var(--c-sil)",vz:false,poc270m:true,poc270t:true,trvanie:"drzi"}
+};
+
+/* ═══ stav aplikácie ═══ */
+const APP={scenare:[],seq:1};
+let uid=1;
+function novyScenar(){
+  return {id:APP.seq++, krok:0, maxKrok:0, zbaleny:false,
+    faza:null, vyplna:null, partner:null, osamela:null, otecSam:null, dietaUOtca:false, silove:"nie",
+    datumRezim:"lekar", datum:iso(addD(TODAY,140)), datNar:"",
+    pocetNaraz:1, poradiePorodu:1, opakDvojcata:false, zdravDieta:"ok",
+    dalsieDeti:0, dalsieNezaopatrene:0, nastup1rocnik:false, neplateneVyzivne:false,
+    umrtie:"nie", datumUmrtia:"",
+    pobyt:"trvaly", bydliskoKrit:{lekari:true,zp:true,evidencia:false,skola:false},
+    prehliadky:true, dohodaPediater:true, maloleta:false, narodCudzina:false, davkaCudzina:false, mimoEU:false, pracaEU:"nie",
+    matka:{segs:[],studium:"nie"}, otec:{segs:[]},
+    matkaCistyPlat:1400, otecCistyPlat:1500,
+    retazenie:false, predoslyDVZ:0, otecDlhe:false,
+    zdRezim:"zaklad", zakladDane:14000, hrubyRocny:16200, zakladDanePartner:0,
+    planSkolka:false, skolkaTyp:"zariadenie", skolkaUhrada:200,
+    nizkyPrijem:false, hnPrijem:0, hnByvanie:true,
+    msNeprijatie:false, striedava:false,
+    valorizacia:false, rastPct:4};
+}
+function pridajScenar(){const s=novyScenar();
+  const R=refDates(s);
+  s.matka.segs.push({id:uid++,typ:"zamestnanec",vz:1300,od:iso(R.W0),do:iso(R.W1)});
+  s.otec.segs.push({id:uid++,typ:"zamestnanec",vz:1500,od:iso(R.W0),do:iso(R.W1)});
+  APP.scenare.push(s);render();}
+window.pridajScenar=pridajScenar;
+window.kopirujScenar=si=>{const c=JSON.parse(JSON.stringify(APP.scenare[si]));c.id=APP.seq++;
+  c.matka.segs.forEach(x=>x.id=uid++);c.otec.segs.forEach(x=>x.id=uid++);
+  APP.scenare.splice(si+1,0,c);render();};
+window.zmazScenar=si=>{APP.scenare.splice(si,1);if(!APP.scenare.length)pridajScenar();else render();};
+window.exportJSON=()=>{
+  const blob=new Blob([JSON.stringify({verzia:1,export:new Date().toISOString(),scenare:APP.scenare},null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="davky-scenare.json";a.click();URL.revokeObjectURL(a.href);};
+window.importJSON=inp=>{const f=inp.files&&inp.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{
+    const d=JSON.parse(r.result);if(!Array.isArray(d.scenare))throw 0;
+    APP.scenare=d.scenare;APP.scenare.forEach(s=>{s.id=APP.seq++;});render();
+  }catch(e){alert("Súbor sa nepodarilo načítať — očakáva sa JSON export z tejto aplikácie.");}};
+  r.readAsText(f);inp.value="";};
+
+/* ═══ pravdepodobnostné rozdelenie dňa pôrodu ═══ */
+/* Lekársky termín (ultrazvuk/Naegele): pôrod ~ N(termín, σ≈9 dní).
+   Od oplodnenia: ~ N(+266 dní, σ≈10) — priemerná ovulácia je ~14 dní po začiatku
+   menštruácie, čím sa kompenzujú štatistiky viazané na LMP (280 dní od LMP).
+   Od poslednej menštruácie (LMP): ~ N(+280 dní, σ≈10). Orezané na ±35 dní. */
+function distribucia(s){
+  if(s.faza==="narodene"||s.faza==="nahradna"){
+    const b=s.datNar?fromIso(s.datNar):TODAY;
+    return {mu:b,sigma:0,dni:[{ts:b,p:1}],istota:true};
+  }
+  let mu,sigma;
+  const d=s.datum?fromIso(s.datum):addD(TODAY,140);
+  if(s.datumRezim==="lekar"){mu=d;sigma=9;}
+  else if(s.datumRezim==="soulozi"){mu=addD(d,266);sigma=10;}
+  else if(s.datumRezim==="menstruacia"){mu=addD(d,280);sigma=10;}
+  else{mu=addD(TODAY,266);sigma=10;}
+  const dni=[];let sum=0;
+  for(let k=-35;k<=35;k++){const p=Math.exp(-k*k/(2*sigma*sigma));dni.push({ts:addD(mu,k),p});sum+=p;}
+  dni.forEach(x=>x.p/=sum);
+  return {mu,sigma,dni,istota:false};
+}
+function refDates(s){
+  const D=distribucia(s);
+  const B=D.mu;                                  // očakávaný / skutočný deň pôrodu
+  const W1=D.istota?B:addD(B,35);                // koniec okna = najneskorší štatisticky významný deň pôrodu
+  /* začiatok okna = 2 roky pred NAJSKORŠÍM štatisticky významným dňom pôrodu (μ − 35),
+     aby sa dali zadať aj poistné obdobia relevantné pri skorom pôrode (okno § 48 ods. 1
+     beží od b − 2 roky pre KAŽDÉ možné b) */
+  const W0=D.istota?addY(B,-2):addY(addD(B,-35),-2);
+  return {D,B,narodene:D.istota,W0,W1,teh27:addW(B,-27*1),matStart:addW(B,-6)};
+}
+
+/* ═══ analýza poistenia ═══ */
+function normSeg(sg,W0,W1){let a=fromIso(sg.od),b=fromIso(sg.do);a=Math.min(Math.max(a,W0),W1);b=Math.min(Math.max(b,W0),W1);if(b<a)b=a;return{od:a,do:b};}
+function anal(s,kto){
+  const R=refDates(s),W0=R.W0,W1=R.W1,DN=dDiff(W0,W1)+1;
+  const typ=new Array(DN).fill(null);
+  for(const sg of s[kto].segs.slice().sort((a,b)=>fromIso(a.od)-fromIso(b.od))){
+    const{od,do:doD}=normSeg(sg,W0,W1);
+    for(let i=dDiff(W0,od);i<=dDiff(W0,doD);i++)if(i>=0&&i<DN&&!typ[i])typ[i]={t:sg.typ,vz:+sg.vz||0};
+  }
+  /* prefixy pre rýchle okienkové otázky */
+  const pm=new Int32Array(DN+1),pt=new Int32Array(DN+1),lastDrz=new Int32Array(DN+1);
+  let ld=-1;
+  for(let i=0;i<DN;i++){
+    const d=typ[i],z=d?ZDROJE[d.t]:null;
+    pm[i+1]=pm[i]+(z&&z.poc270m?1:0);
+    pt[i+1]=pt[i]+(z&&z.poc270t?1:0);
+    if(z&&(z.trvanie===true||z.trvanie==="drzi"))ld=i;
+    lastDrz[i+1]=ld;
+  }
+  const idx=t=>Math.min(Math.max(dDiff(W0,t),0),DN);
+  const dniM=b=>pm[idx(b)+ (idx(b)<DN?1:0)]-pm[Math.max(0,idx(addY(b,-2)))];
+  const dniT=b=>pt[idx(b)+ (idx(b)<DN?1:0)]-pt[Math.max(0,idx(addY(b,-2)))];
+  const drziK=b=>{const i=idx(b);const l=lastDrz[Math.min(i+1,DN)];return l>=0&&i-l<=1;};
+  const ochrannaK=b=>{const i=idx(b);const l=lastDrz[Math.min(i+1,DN)];if(l<0)return false;
+    const zanik=addD(W0,l);return zanik>=addW(R.B,-42)&&b<=addD(zanik,244);}; // 8 mesiacov ≈ 244 dní
+  /* vylúčenie povinnosti platiť poistné počas poberania materského (§ 140):
+     matka od začiatku materskej (6. týž. pred pôrodom) počas 34/37/43 týždňov,
+     otec počas 14 dní otcovského; poistenie pritom TRVÁ */
+  const vylTyz=kto==="matka"?(s.umrtie==="mrtve"?14:(s.pocetNaraz>1?43:((s.osamela===true&&!s.partner)?37:34))):2;
+  const vylOd=kto==="matka"?addW(R.B,-6):addD(R.B,1);
+  const vylDo=kto==="matka"?addD(addW(vylOd,vylTyz),-1):addD(R.B,14);
+  /* zaplatené poistné poistencom — len skutočné platby z vlastného vrecka */
+  let poistne=0,poistneRok={},vylDni=0;
+  for(let i=0;i<DN;i++){const d=typ[i];if(!d)continue;const z=ZDROJE[d.t];if(!z.vz)continue;
+    const t=addD(W0,i);
+    if(t>=vylOd&&t<=vylDo){vylDni++;continue;}
+    /* poistné sa platí najviac z maximálneho VZ (§ 138) */
+    const zakl=Math.min(d.t==="zamestnanec"?d.vz:Math.max(d.vz,P.minVZmesacny.hodnota),P.maxVZmesacny.hodnota);
+    const c=zakl*12/365*z.sadzba;poistne+=c;
+    const y=rok(t);poistneRok[y]=(poistneRok[y]||0)+c;}
+  /* DVZ podľa § 54 — dôvod na dávku vzniká začiatkom materskej (6. týždeň pred pôrodom), nie pôrodom */
+  const paying=i=>{const d=typ[i];return d&&ZDROJE[d.t].trvanie===true?d:null;};
+  const NAR=addW(R.B,-6);
+  const eventY=rok(NAR);
+  const roS0=Date.UTC(eventY-1,0,1),roE0=Date.UTC(eventY-1,11,31);
+  /* poistenie, z ktorého vznikne nárok = posledný platený zdroj pred začiatkom materskej;
+     zmena typu zdroja (napr. dobrovoľné → zamestnanie) = nové poistenie s vlastným RO (§ 54) */
+  let j0=Math.min(dDiff(W0,NAR),DN-1);while(j0>=0&&!paying(j0))j0--;
+  const typNar=j0>=0?typ[j0].t:null;
+  let sposob,dvz,cont=typNar!==null,ro=null,rezervaPrah=null; // rezervaPrah: dní nad prahom 90/182 — citlivosť na posun termínu lekárom
+  if(cont)for(let t=Math.max(roS0,W0);t<=Math.min(NAR,W1);t+=DAY){const i=dDiff(W0,t);const d=i>=0&&i<DN?paying(i):null;if(!d||d.t!==typNar){cont=false;break;}}
+  let roPokryte=0,roDni=0;
+  if(cont&&roS0>=W0){
+    let sum=0;const dni=dDiff(roS0,roE0)+1;roDni=dni;
+    for(let t=roS0;t<=roE0;t+=DAY){const d=paying(dDiff(W0,t));if(d){sum+=Math.max(d.vz,d.t!=="zamestnanec"?P.minVZmesacny.hodnota:0)*12/365;roPokryte++;}}
+    dvz=sum/dni;sposob="RO = kalendárny rok "+(eventY-1)+" (§ 54 ods. 1)";ro=[roS0,roE0];
+  }else{
+    const j=j0;
+    let vznik=null;if(j>=0){let k=j;while(k>=0&&paying(k)&&paying(k).t===typNar)k--;vznik=addD(W0,k+1);}
+    /* nové zamestnanie: 90 dní (§ 54 ods. 2, § 57 ods. 1 písm. b));
+       nové dobrovoľné poistenie: 26 týždňov = 182 dní (§ 54 ods. 7, § 57 ods. 1 písm. d)) */
+    const prah=typNar==="dobrovolne"?182:90;
+    if(vznik!==null)rezervaPrah=dDiff(vznik,NAR)-prah;
+    if(vznik!==null&&dDiff(vznik,NAR)>=prah){
+      const roE=addD(Date.UTC(rok(NAR),new Date(NAR).getUTCMonth(),1),-1),roS=vznik;
+      if(dDiff(roS,roE)>=1){let sum=0;const dni=dDiff(roS,roE)+1;roDni=dni;
+        for(let t=roS;t<=roE;t+=DAY){const d=paying(dDiff(W0,t));if(d){sum+=Math.max(d.vz,d.t!=="zamestnanec"?P.minVZmesacny.hodnota:0)*12/365;roPokryte++;}}
+        dvz=sum/dni;sposob="RO od vzniku poistenia "+fmtD(vznik)+" do "+fmtD(roE)+" (§ 54 ods. 2)";ro=[roS,roE];
+      }else{dvz=P.minVZmesacny.hodnota/30;sposob="pravdepodobný DVZ (§ 57)";}
+    }else{const d=j>=0?typ[j]:null;
+      dvz=Math.min((d?Math.max(d.vz,P.minVZmesacny.hodnota):P.minVZmesacny.hodnota)/30,P.minVZmesacny.hodnota/30);
+      sposob="pravdepodobný DVZ (§ 57 — poistenie k začiatku materskej trvá menej ako "+((j>=0&&typ[j].t==="dobrovolne")?"26 týždňov (dobrovoľné poistenie)":"90 dní")+")";}
+  }
+  const pravdepodobny=String(sposob).indexOf("pravdepodobný")===0;
+  const dvzRaw=dvz;dvz=Math.min(Math.ceil(dvz*10000)/10000,P.maxDVZ.hodnota);
+  return {dniM,dniT,drziK,ochrannaK,dvz,dvzRaw,sposob,poistne,ro,roDni,roPokryte,priemerMesRO:dvzRaw*365/12,vyl:[vylOd,vylDo],vylDni,typNar,pravdepodobny,rezervaPrah,zastropovane:dvzRaw>P.maxDVZ.hodnota,
+    dniM_mu:dniM(R.B),dniT_mu:dniT(addW(R.B,-27)),okM_mu:dniM(R.B)>=270};
+}
+/* pravdepodobnosť splnenia podmienok materského cez rozdelenie pôrodu */
+function probMaterske(s,a){
+  const R=refDates(s);let p=0,prvy=null;
+  for(const d of R.D.dni){
+    const ok=a.dniM(d.ts)>=270&&(a.drziK(d.ts)||a.ochrannaK(d.ts));
+    if(ok){p+=d.p;if(prvy===null)prvy=d.ts;}
+  }
+  return {p:Math.min(1,p),prvyDen:prvy};
+}
+
+/* ═══ render ═══ */
+const blokyEl=document.getElementById("bloky");
+function steps(s){
+  const st=[{k:"situacia",n:"Situácia"},{k:"dieta",n:"Dieťa a rodina"},{k:"pobyt",n:"Väzby na SR"}];
+  if(s.vyplna!=="otec"||s.partner)st.push({k:"pmatka",n:"Poistenie matky"});
+  if(s.partner||s.vyplna==="otec")st.push({k:"potec",n:"Poistenie otca"});
+  st.push({k:"prijmy",n:"Príjmy"},{k:"vysledok",n:"Výsledok"});
+  return st;
+}
+function render(scrollTop){
+  const y=window.scrollY;
+  blokyEl.innerHTML=APP.scenare.map((s,si)=>blok(s,si)).join("");
+  window.scrollTo(0,y);
+}
+function blok(s,si){
+  const st=steps(s);if(s.krok>=st.length)s.krok=st.length-1;
+  const k=st[s.krok].k;
+  const mx=Math.max(s.krok,s.maxKrok??0);
+  const kroky='<div class="kroky">'+st.map((x,i)=>'<div class="k '+(i===s.krok?"act":i<s.krok?"done":"")+(i<=mx?" klik":"")+'" onclick="skoc('+si+','+i+')"><span class="n">'+(i<s.krok?"✓":i+1)+'</span>'+x.n+'</div>').join("")+'</div>';
+  let telo="";
+  if(k==="situacia")telo=vSituacia(s,si);
+  else if(k==="dieta")telo=vDieta(s,si);
+  else if(k==="pobyt")telo=vPobyt(s,si);
+  else if(k==="pmatka")telo=vPoist(s,si,"matka");
+  else if(k==="potec")telo=vPoist(s,si,"otec");
+  else if(k==="prijmy")telo=vPrijmy(s,si);
+  else telo=vVysledok(s,si);
+  return '<div class="blok" id="blok'+si+'">'+
+    '<div class="blok-head"><span class="nm">Scenár '+(si+1)+'</span><span class="st">'+popisScenara(s)+'</span></div>'+
+    '<div class="blok-body">'+kroky+telo+'</div></div>'+
+    '<div class="blok-foot">'+
+      '<button class="btn sm" onclick="kopirujScenar('+si+')">⧉ Kopírovať</button>'+
+      '<button class="btn sm danger" onclick="zmazScenar('+si+')">✕ Zmazať</button>'+
+    '</div>';
+}
+function popisScenara(s){
+  const f={tehotna:"tehotenstvo",narodene:"dieťa narodené",nahradna:"náhradná starostlivosť"}[s.faza]||"—";
+  return f+(s.vyplna?" · vypĺňa "+s.vyplna:"")+(s.pocetNaraz>1?" · "+s.pocetNaraz+" detí naraz":"");
+}
+window.skoc=(si,i)=>{const s=APP.scenare[si];if(i<=Math.max(s.krok,s.maxKrok??0))s.krok=i;render();scrollBlok(si);};
+window.go=(si,d)=>{const s=APP.scenare[si];s.krok+=d;s.maxKrok=Math.max(s.maxKrok??0,s.krok);render();scrollBlok(si);};
+function scrollBlok(si){const el=document.getElementById("blok"+si);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
+/* zmena závislosti, ktorá mení štruktúru neskorších krokov, zneplatní navštívené kroky pred ňou;
+   ostatné odpovede zostávajú zachované — návrat späť nič nemaže */
+const ZAVISLOSTI=["faza","vyplna","partner","otecSam","silove"];
+window.setS=(si,f,v)=>{const s=APP.scenare[si];const dep=ZAVISLOSTI.includes(f)&&s[f]!==v;
+  s[f]=v;if(dep)s.maxKrok=s.krok;render();};
+window.setS2=(si,obj,f,v)=>{APP.scenare[si][obj][f]=v;render();};
+
+const nav=(si,s,lbl,ok)=>'<div class="nav">'+(s.krok>0?'<button class="btn" onclick="go('+si+',-1)">← Späť</button>':'<span></span>')+
+  (lbl?'<button class="btn primary" '+(ok===false?"disabled":"")+' onclick="go('+si+',1)">'+lbl+' →</button>':'<span></span>')+'</div>';
+const choice=(si,f,v,t,d)=>'<button class="choice '+(APP.scenare[si][f]===v?"sel":"")+'" onclick="setS('+si+',\''+f+'\','+(typeof v==="string"?"'"+v+"'":v)+')"><span class="t">'+t+'</span>'+(d?'<span class="d">'+d+'</span>':"")+'</button>';
+const sw=(si,f,t,d)=>'<label class="switch '+(APP.scenare[si][f]?"on":"")+'"><input type="checkbox" '+(APP.scenare[si][f]?"checked":"")+' onchange="setS('+si+',\''+f+'\',this.checked)"><span><span class="t">'+t+'</span><span class="d">'+(d||"")+'</span></span></label>';
+/* dd.mm.rrrr vstup — commit len pri platnom formáte, render až na blur */
+const dt=(si,path,val)=>'<input class="dt" type="text" inputmode="numeric" placeholder="dd.mm.rrrr" value="'+(val?fmtD(fromIso(val)):"")+'" data-si="'+si+'" data-dt="'+path+'">';
+/* číslo — commit bez straty fokusu, render na blur */
+const num=(si,path,val,step,suffix)=>'<div class="suffix"><input type="number" min="0" step="'+(step||1)+'" value="'+(val??"")+'" data-si="'+si+'" data-num="'+path+'"><span>'+(suffix||"")+'</span></div>';
+
+function setPath(s,path,v){const p=path.split(".");let o=s;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v;}
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.dataset.dt!==undefined){
+    const ts=parseDMY(el.value);
+    el.classList.toggle("okk",ts!==null);el.classList.remove("bad");
+    if(ts!==null){setPath(APP.scenare[+el.dataset.si],el.dataset.dt,iso(ts));el.dataset.dirty="1";}
+  }else if(el.dataset.num!==undefined){
+    const v=Math.max(0,+el.value||0);
+    setPath(APP.scenare[+el.dataset.si],el.dataset.num,v);el.dataset.dirty="1";
+    if(el.dataset.link){const other=document.querySelector('[data-num="'+el.dataset.link+'"][data-si="'+el.dataset.si+'"]');
+      if(other){const r=+el.dataset.rate;const nv=el.dataset.dir==="toVz"?v/r:v*r;
+        setPath(APP.scenare[+el.dataset.si],other.dataset.num,Math.round(nv*100)/100);other.value=Math.round(nv*100)/100;}}
+  }
+});
+document.addEventListener("focusout",e=>{
+  const el=e.target;
+  if(!el.dataset)return;
+  if(el.dataset.dt!==undefined){
+    if(el.value&&parseDMY(el.value)===null){el.classList.add("bad");return;}
+    if(el.dataset.dirty)render();
+  }else if(el.dataset.num!==undefined&&el.dataset.dirty){render();}
+});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset&&(e.target.dataset.dt!==undefined||e.target.dataset.num!==undefined))e.target.blur();});
+
+/* ═══ KROK 1 — situácia ═══ */
+function vSituacia(s,si){
+  const D=distribucia(s);
+  let datBlok="";
+  if(s.faza==="tehotna"){
+    datBlok='<label class="q">Ako určíme deň pôrodu?</label><div class="choices c4">'+
+      choice(si,"datumRezim","lekar","Termín od lekára","očakávaný deň pôrodu určený gynekológom")+
+      choice(si,"datumRezim","soulozi","Deň oplodnenia","dátum plodného styku — pôrod ≈ o 266 dní")+
+      choice(si,"datumRezim","menstruacia","Posledná menštruácia","pôrod ≈ o 280 dní od jej začiatku")+
+      choice(si,"datumRezim","dnes","Počítať od dnes","predpoklad oplodnenia dnes")+
+    '</div>'+
+    (s.datumRezim!=="dnes"?'<label class="q">'+({lekar:"Očakávaný deň pôrodu určený lekárom",soulozi:"Deň (možného) oplodnenia",menstruacia:"Prvý deň poslednej menštruácie"}[s.datumRezim])+'</label>'+
+      '<div class="inline"><div>'+dt(si,"datum",s.datum)+'</div><div style="flex:2 1 300px"><p class="hint">Formát dd.mm.rrrr — hodnota sa použije až po zadaní celého platného dátumu. '+
+      'Skutočný pôrod je náhodný — počítame s rozdelením pravdepodobnosti (±35 dní, σ≈'+(s.datumRezim==="lekar"?9:10)+' dní). Najpravdepodobnejší deň pôrodu: <b>'+fmtD(D.mu)+'</b>.</p></div></div>'
+      :'<p class="hint" style="margin-top:8px">Predpoklad oplodnenia dnes → najpravdepodobnejší pôrod okolo <b>'+fmtD(D.mu)+'</b> (±35 dní).</p>');
+  }
+  if(s.faza==="narodene")datBlok='<label class="q">Dátum narodenia dieťaťa</label><div class="inline"><div>'+dt(si,"datNar",s.datNar)+'</div><div style="flex:2 1 300px"><p class="hint">Podmienka 270 dní poistenia sa posudzuje k dvom rokom pred pôrodom. <span class="cit">§ 48 ods. 1 zák. 461/2003</span></p></div></div>';
+  if(s.faza==="nahradna")datBlok='<div class="info">Vyhodnotia sa príspevky na podporu náhradnej starostlivosti (627/2005), rodičovský príspevok, prídavok a materské „iného poistenca“. Dátum právoplatnosti rozhodnutia:</div><div style="margin-top:8px">'+dt(si,"datNar",s.datNar)+'</div>';
+
+  let otecSamBlok="";
+  if(s.vyplna==="otec"&&s.partner===false){
+    otecSamBlok='<label class="q">Prečo ste na starostlivosť sám? (určuje, ktoré nároky prechádzajú na otca)</label><div class="choices">'+
+      choice(si,"otecSam","zomrela","Matka dieťaťa zomrela","materské otca 28/31/37 týž. a príspevok pri narodení prechádzajú na otca <span class=cit>§ 49 ods. 3 písm. a) zák. 461/2003; § 2 ods. 1 písm. b) zák. 383/2013</span>")+
+      choice(si,"otecSam","nemoze","Matka sa nemôže starať (lekársky posudok)","materské otca, ak matka nepoberá materské ani RP <span class=cit>§ 49 ods. 3 písm. b)</span>")+
+      choice(si,"otecSam","zverene","Dieťa mi zverené súdom","príspevok pri narodení aj RP patria otcovi <span class=cit>§ 2 ods. 1 písm. b) 2. zák. 383/2013</span>")+
+      choice(si,"otecSam","oddelene","Žijeme oddelene","dávky viazané na matku ostávajú matke; nároky otca závisia od starostlivosti o dieťa")+
+    '</div>'+
+    (s.otecSam==="oddelene"?sw(si,"dietaUOtca","Dieťa bude žiť prevažne v mojej domácnosti","podmienka RP, prídavku a daňového bonusu pre otca"):"");
+  }
+  return '<h2>Vaša situácia</h2><p class="lead">Úvodný skríning — ďalšie kroky sa pýtajú len na to, čo môže ovplyvniť niektorú dávku.</p>'+
+  '<label class="q">V akej fáze ste?</label><div class="choices">'+
+    choice(si,"faza","tehotna","Čakáme dieťa","tehotenstvo — deň pôrodu určíme jednou zo štyroch metód")+
+    choice(si,"faza","narodene","Dieťa sa už narodilo","vyhodnotenie od dátumu narodenia")+
+    choice(si,"faza","nahradna","Preberám dieťa do náhradnej starostlivosti","pestúnstvo, zverenie súdom, predosvojiteľská starostlivosť")+
+  '</div>'+datBlok+
+  '<label class="q">Kto vypĺňa kalkulačku?</label><div class="choices c4">'+
+    choice(si,"vyplna","matka","Matka","")+choice(si,"vyplna","otec","Otec","")+
+  '</div>'+
+  '<label class="q">Žijete s druhým rodičom dieťaťa (alebo manželom/manželkou)?</label><div class="choices">'+
+    choice(si,"partner",true,"Áno","vyhodnotia sa nároky oboch rodičov ako rodiny")+
+    choice(si,"partner",false,"Nie, som na to sama/sám","")+
+  '</div>'+otecSamBlok+
+  (s.partner===false&&s.vyplna==="matka"?'<label class="q">Ste osamelá aj v zmysle zákona?</label><div class="choices">'+
+    choice(si,"osamela",true,"Áno","slobodná/ovdovená/rozvedená a nežijem s druhom — materské 37 týždňov <span class=cit>§ 48 ods. 3 zák. 461/2003</span>")+
+    choice(si,"osamela",false,"Nie","žijem s partnerom, hoci nie s otcom dieťaťa")+
+  '</div>':"")+
+  '<label class="q">Je niektorý z rodičov policajt alebo profesionálny vojak?</label><div class="choices c4">'+
+    choice(si,"silove","nie","Nie","")+
+    (s.vyplna==="matka"||s.partner?choice(si,"silove","matka","Matka","dávky podľa zák. 328/2002"):"")+
+    (s.vyplna==="otec"||s.partner?choice(si,"silove","otec","Otec",""):"")+
+    (s.partner?choice(si,"silove","obaja","Obaja",""):"")+
+  '</div>'+
+  nav(si,s,"Pokračovať",!!s.faza&&!!s.vyplna&&s.partner!==null
+    &&(s.faza!=="narodene"||!!s.datNar)&&(s.faza!=="nahradna"||!!s.datNar)
+    &&(!(s.vyplna==="otec"&&s.partner===false)||!!s.otecSam)
+    &&(!(s.vyplna==="matka"&&s.partner===false)||s.osamela!==null));
+}
+
+/* ═══ KROK 2 — dieťa a rodina ═══ */
+function vDieta(s,si){
+  return '<h2>Dieťa a rodina</h2><p class="lead">Počty a zdravotný stav menia sumy aj trvanie viacerých dávok.</p>'+
+  '<label class="q">Koľko detí sa narodí / narodilo naraz?</label><div class="choices c4">'+
+    choice(si,"pocetNaraz",1,"Jedno","")+choice(si,"pocetNaraz",2,"Dvojčatá","materské 43 týž., RP +25 %")+choice(si,"pocetNaraz",3,"Trojčatá a viac","navyše 110,36 €/dieťa ročne")+
+  '</div>'+
+  '<label class="q">Koľký je to pôrod matky dieťaťa v poradí?</label>'+
+  '<div class="inline"><div>'+num(si,"poradiePorodu",s.poradiePorodu,1,". pôrod")+'</div>'+
+  '<div style="flex:2 1 300px"><p class="hint">Príspevok pri narodení: 829,86 € za 1.–4. pôrod, 151,37 € za 5. a ďalší; počíta sa poradie <b>pôrodu</b> (dvojčatá = 1 pôrod). <span class="cit">§ 4 zák. 383/2013</span></p></div></div>'+
+  (s.pocetNaraz===2?sw(si,"opakDvojcata","V priebehu 2 rokov sa opakovane narodili dvojčatá","ročný príspevok na viac súčasne narodených detí <span class=cit>§ 1 ods. 3 písm. b) zák. 383/2013</span>"):"")+
+  '<label class="q">Zdravotný stav dieťaťa</label><div class="choices">'+
+    choice(si,"zdravDieta","ok","Bez ťažkostí","")+
+    choice(si,"zdravDieta","dnzs","Dlhodobo nepriaznivý zdravotný stav","RP a príspevok na starostlivosť do 6 rokov")+
+    choice(si,"zdravDieta","tzp","Ťažké zdravotné postihnutie","navyše kompenzácie podľa zák. 447/2008")+
+  '</div>'+
+  '<label class="q">Staršie deti v domácnosti</label><div class="inline">'+
+    '<div><span class="lb hint">Počet starších detí</span>'+num(si,"dalsieDeti",s.dalsieDeti,1,"detí")+'</div>'+
+    '<div><span class="lb hint">Z toho nezaopatrených</span>'+num(si,"dalsieNezaopatrene",s.dalsieNezaopatrene,1,"detí")+'</div>'+
+  '</div>'+
+  '<p class="hint">Počet nezaopatrených detí potrebujeme aj pri úplnej rodine — zvyšuje strop daňového bonusu (29 – 64 % základu dane, § 33 ods. 6 zák. 595/2003) a zakladá prídavok na staršie deti.</p>'+
+  (s.dalsieDeti>0?sw(si,"nastup1rocnik","Niektoré dieťa tento rok prvýkrát nastúpi do 1. ročníka ZŠ","jednorazové zvýšenie prídavku o 110 € <span class=cit>§ 8 ods. 1 zák. 600/2003</span>"):"")+
+  (s.dalsieDeti>0&&s.partner===false?sw(si,"neplateneVyzivne","Súdom určené výživné na niektoré dieťa sa neplatí","preveríme náhradné výživné <span class=cit>zák. 201/2008</span>"):"")+
+  (s.faza==="narodene"?'<label class="q">Tragické situácie (ak sa vás netýkajú, nechajte „Nie“)</label><div class="choices">'+
+    choice(si,"umrtie","nie","Nie","")+
+    choice(si,"umrtie","mrtve","Dieťa sa narodilo mŕtve","materské 14 týždňov; príspevok na pohreb <span class=cit>§ 48 ods. 7 zák. 461/2003</span>")+
+    choice(si,"umrtie","zomrelo","Dieťa zomrelo po narodení","materské do konca 2. týždňa od úmrtia; RP zaniká <span class=cit>§ 48 ods. 8; § 6 ods. 2 zák. 571/2009</span>")+
+  '</div>'+(s.umrtie==="zomrelo"?'<label class="q">Dátum úmrtia</label>'+dt(si,"datumUmrtia",s.datumUmrtia):""):"")+
+  nav(si,s,"Pokračovať",true);
+}
+
+/* ═══ KROK 3 — väzby na SR ═══ */
+function vPobyt(s,si){
+  const bk=s.bydliskoKrit,bkCount=Object.values(bk).filter(Boolean).length;
+  const bkSw=(k,t)=>'<label class="switch '+(bk[k]?"on":"")+'"><input type="checkbox" '+(bk[k]?"checked":"")+' onchange="APP.scenare['+si+'].bydliskoKrit.'+k+'=this.checked;render()"><span><span class="t">'+t+'</span></span></label>';
+  return '<h2>Väzby na Slovensko</h2><p class="lead">Pobytové podmienky a povinnosti, ktoré zákon skúma pri jednotlivých dávkach — pri úplnej rodine za oboch rodičov.</p>'+
+  '<label class="q">Pobyt oprávnenej osoby v SR</label><div class="choices">'+
+    choice(si,"pobyt","trvaly","Trvalý pobyt","")+
+    choice(si,"pobyt","prechodny","Prechodný pobyt","stačí pre RP, prídavok, príspevok na starostlivosť; nestačí pre príspevok pri narodení")+
+    choice(si,"pobyt","ziadny","Bez pobytu v SR","dávky ÚPSVaR nevzniknú; dávky SP podľa poistenia")+
+  '</div>'+
+  '<label class="q">Kritériá „bydliska“ pre príspevok pri narodení <span class="cit">(§ 2 ods. 4 zák. 383/2013 — treba aspoň 2)</span></label>'+
+  bkSw("lekari","Dohoda so všeobecným lekárom a gynekológom v SR")+
+  bkSw("zp","Povinné verejné zdravotné poistenie v SR")+
+  bkSw("evidencia","Evidencia uchádzačov o zamestnanie / štúdium / starostlivosť o dieťa do 6 r.")+
+  bkSw("skola","Ďalšie dieťa navštevuje školu v SR")+
+  '<p class="hint">Splnené: <b>'+bkCount+' / 4</b> '+(bkCount>=2?"✓":"— podmienka bydliska zatiaľ nesplnená")+'</p>'+
+  '<h3>Povinnosti viažuce sa na tehotenstvo a pôrod</h3>'+
+  sw(si,"prehliadky","Matka absolvuje od 4. mesiaca tehotenstva mesačné preventívne prehliadky","bez nich nevznikne príspevok pri narodení <span class=cit>§ 3 ods. 4 písm. a) zák. 383/2013</span>")+
+  sw(si,"dohodaPediater","Pre dieťa bude uzatvorená dohoda s pediatrom","podmienka príspevku pri narodení <span class=cit>§ 3 ods. 3 písm. a)</span>")+
+  '<h3>Osobitné situácie</h3>'+
+  sw(si,"maloleta","Matka je maloletá bez súdom priznaných rodičovských práv","vylučuje príspevok pri narodení aj RP <span class=cit>§ 3 ods. 3 písm. f) zák. 383/2013; § 3 ods. 12 zák. 571/2009</span>")+
+  sw(si,"narodCudzina","Dieťa sa narodí / narodilo mimo územia SR","")+
+  (s.narodCudzina?sw(si,"davkaCudzina","Štát narodenia vyplatil obdobný príspevok pri narodení","vylučuje slovenský príspevok <span class=cit>§ 3 ods. 3 písm. e)</span>"):"")+
+  sw(si,"mimoEU","Rodina sa bude zdržiavať mimo EÚ/EHP/Švajčiarska bez slovenského verejného ZP","ruší RP a prídavok <span class=cit>§ 3 ods. 10 zák. 571/2009; § 7 ods. 3 zák. 600/2003</span>")+
+  '<label class="q">Pracuje niektorý rodič v inom členskom štáte (EÚ/EHP/Švajčiarsko) — teraz alebo v rozhodujúcom období?</label><div class="choices c4">'+
+    choice(si,"pracaEU","nie","Nie","")+
+    choice(si,"pracaEU","matka","Matka","")+
+    (s.partner||s.vyplna==="otec"?choice(si,"pracaEU","otec","Otec",""):"")+
+    (s.partner?choice(si,"pracaEU","obaja","Obaja",""):"")+
+  '</div>'+
+  (s.pracaEU!=="nie"?'<div class="info">Rodinné dávky (rodičovský príspevok, prídavok, daňový bonus) prednostne vypláca <b>štát výkonu zárobkovej činnosti</b>; Slovensko dopláca rozdiel, ak sú slovenské sumy vyššie. Dotknuté dávky označíme ako podmienené. <span class="cit">nariadenie (ES) 883/2004 čl. 67–68</span></div>':"")+
+  nav(si,s,"Pokračovať",true);
+}
+
+/* ═══ KROK 4/5 — poistenie s ťahaním myšou ═══ */
+function vPoist(s,si,kto){
+  const R=refDates(s),W0=R.W0,W1=R.W1,DN=dDiff(W0,W1)+1;
+  const a=anal(s,kto),segs=s[kto].segs;
+  const dniM=a.dniM_mu,pct=Math.min(100,dniM/270*100);
+  const silTen=(kto==="matka"&&(s.silove==="matka"||s.silove==="obaja"))||(kto==="otec"&&(s.silove==="otec"||s.silove==="obaja"));
+  /* distribúcia pôrodu ako stĺpiky */
+  let dist="";
+  if(!R.narodene){
+    const maxp=Math.max(...R.D.dni.map(d=>d.p));
+    dist=R.D.dni.map(d=>{const l=dDiff(W0,d.ts)/DN*100;if(l<0||l>100)return"";
+      return '<div class="distcol" style="left:'+l+'%;height:'+(d.p/maxp*46)+'px"></div>';}).join("");
+  }
+  const teh27=addW(R.B,-27), pxT=dDiff(W0,teh27)/DN*100, pxB=dDiff(W0,R.B)/DN*100;
+  let bar='<div class="bar" id="bar_'+si+'_'+kto+'" data-si="'+si+'" data-kto="'+kto+'">'+dist;
+  segs.forEach((sg,i)=>{const{od,do:doD}=normSeg(sg,W0,W1);
+    const l=dDiff(W0,od)/DN*100,w=Math.max(.4,(dDiff(od,doD)+1)/DN*100);
+    bar+='<div class="seg" data-i="'+i+'" style="left:'+l+'%;width:'+w+'%;background:'+ZDROJE[sg.typ].f+'">'+
+      (w>8?'<span>'+(dDiff(od,doD)+1)+' dní</span>':"")+'<div class="h l" data-i="'+i+'"></div><div class="h r" data-i="'+i+'"></div></div>';});
+  if(TODAY>=W0&&TODAY<=W1)bar+='<div class="mark" style="left:'+(dDiff(W0,TODAY)/DN*100)+'%"></div>';
+  if(kto==="matka"&&!R.narodene&&teh27>=W0&&teh27<=W1)bar+='<div class="vl" style="left:'+pxT+'%;background:var(--gov2)"></div>';
+  bar+='<div class="vl" style="left:calc('+Math.min(pxB,99.8)+'% - 1px);background:var(--red)"></div>';
+  if(a.ro){const rs=Math.max(0,dDiff(W0,a.ro[0])/DN*100),re=Math.min(100,(dDiff(W0,a.ro[1])+1)/DN*100);
+    if(re>rs)bar+='<div class="ro" style="left:'+rs+'%;width:'+(re-rs)+'%" title="rozhodujúce obdobie pre DVZ (§ 54)"></div>';}
+  {const vs=Math.max(0,dDiff(W0,a.vyl[0])/DN*100),ve=Math.min(100,(dDiff(W0,a.vyl[1])+1)/DN*100);
+   if(ve>vs)bar+='<div class="vyl" style="left:'+vs+'%;width:'+(ve-vs)+'%" title="poberanie materského: poistenie trvá, poistné sa neplatí (§ 140)"></div>';}
+  bar+='</div>';
+  const marksRow='<div class="tlmarks">'+
+    (kto==="matka"&&!R.narodene&&teh27>=W0?'<span class="m" style="left:'+pxT+'%;background:var(--cond-soft);color:var(--cond)">27. týž. pred pôrodom (§ 47a ods. 1)</span>':"")+
+    '<span class="m edge" style="left:100%;background:var(--err-soft);color:var(--err)">'+(R.narodene?"Dátum pôrodu ":"Stanovený dátum pôrodu ")+fmtD(R.B)+'</span>'+
+  '</div>';
+  const rows=segs.map((sg,i)=>{
+    const z=ZDROJE[sg.typ],sadz=z.sadzba||0;
+    return '<div class="seg-row" id="segrow_'+si+'_'+kto+'_'+i+'">'+
+    '<div><span class="lb">Od</span><input class="dt" type="text" inputmode="numeric" placeholder="dd.mm.rrrr" value="'+fmtD(fromIso(sg.od))+'" data-si="'+si+'" data-dt="'+kto+'.segs.'+i+'.od"></div>'+
+    '<div><span class="lb">Do</span><input class="dt" type="text" inputmode="numeric" placeholder="dd.mm.rrrr" value="'+fmtD(fromIso(sg.do))+'" data-si="'+si+'" data-dt="'+kto+'.segs.'+i+'.do"></div>'+
+    '<div><span class="lb"><span class="dot" style="background:'+z.f+'"></span>Zdroj poistenia</span><select onchange="setSegTyp('+si+',\''+kto+'\','+i+',this.value)">'+
+      Object.keys(ZDROJE).map(k=>'<option value="'+k+'" '+(sg.typ===k?"selected":"")+'>'+ZDROJE[k].n+'</option>').join("")+'</select></div>'+
+    (z.vz?'<div><span class="lb">'+z.vzLbl+'</span><div class="suffix"><input type="number" min="0" step="10" value="'+(sg.vz||"")+'" data-si="'+si+'" data-num="'+kto+'.segs.'+i+'.vz" data-link="'+kto+'.segs.'+i+'.__p" data-rate="'+sadz+'" data-dir="toP"><span>€/mes.</span></div></div>'+
+     '<div><span class="lb">zaplatené poistné ('+z.sadzbaLbl+')</span><div class="suffix"><input type="number" min="0" step="1" value="'+(sg.vz?Math.round(sg.vz*sadz*100)/100:"")+'" data-si="'+si+'" data-num="'+kto+'.segs.'+i+'.__p" data-link="'+kto+'.segs.'+i+'.vz" data-rate="'+sadz+'" data-dir="toVz"><span>€/mes.</span></div></div>'
+     :'<div><span class="lb">Základ</span><input disabled value="—"></div><div></div>')+
+    '<div class="del"><button class="icon" title="Odstrániť obdobie" onclick="delSeg('+si+',\''+kto+'\','+i+')">✕</button></div></div>';
+  }).join("");
+  const kt=kto==="matka"?"matky":"otca";
+  return '<h2>Nemocenské poistenie '+kt+'</h2>'+
+  (kto==="matka"
+   ?'<p class="lead">Pre vznik nároku na niektoré zákonné dávky je potrebné v období dvoch rokov splniť podmienky platby nemocenskej zložky sociálneho poistenia. Keďže sociálna poisťovňa akceptuje rôzne zdroje platby poistného, nasledovný graf ukazuje časovú os s obdobím pôrodu na pravej strane a dvojročné obdobie vľavo. Do tohto dvojročného obdobia je možné pridať ľubovoľný počet období kedy žiadateľ platil poistné spolu s poistným základom. Kalkulačka na základe poistných období a ich základov vypočíta možnosť nároku na sociálne dávky vrátane ich sumy. Termín pôrodu od ktorého sa viažu aj ďalšie termíny je udaný lekárom. Pôrod však v daný deň nemusí nastať. Kalkulačka vizualizuje pravdepodobnosť pôrodu v danom dni. V prípade že minimálna dĺžka platby poistného vychádza na deň očakávaného pôrodu a matka porodí predčasne, stratí tým nárok na celú dávku. '+
+    'Nárok na materské vyžaduje <b>270 dní</b> poistenia; štúdium sa počíta len so získaným stupňom vzdelania (a len pre materské), rodičovská dovolenka sa počíta. <span class="cit">§ 47a, § 48 ods. 1, § 49a zák. 461/2003</span></p>'
+   :'<p class="lead">Pre vznik nároku otca na niektoré zákonné dávky je potrebné v období dvoch rokov splniť podmienky platby nemocenskej zložky sociálneho poistenia. Keďže sociálna poisťovňa akceptuje rôzne zdroje platby poistného, nasledovný graf ukazuje časovú os s obdobím pôrodu na pravej strane a dvojročné obdobie vľavo. Do tohto dvojročného obdobia je možné pridať ľubovoľný počet období kedy žiadateľ platil poistné spolu s poistným základom. Kalkulačka na základe poistných období a ich základov vypočíta možnosť nároku na sociálne dávky vrátane ich sumy. Termín pôrodu od ktorého sa viažu aj ďalšie termíny je udaný lekárom. Pôrod však v daný deň nemusí nastať. Kalkulačka vizualizuje pravdepodobnosť pôrodu v danom dni. V prípade že minimálna dĺžka platby poistného vychádza na deň očakávaného pôrodu a matka porodí predčasne, stratí tým otec nárok na celú dávku. '+
+    'Nárok na materské otca („otcovské“) vyžaduje <b>270 dní</b> poistenia otca v dvoch rokoch pred dňom žiadosti; štúdium sa počíta len so získaným stupňom vzdelania, rodičovská dovolenka sa počíta. <span class="cit">§ 49 ods. 1, § 49a zák. 461/2003</span></p>')+
+  '<div class="tl-head"><div class="podm-blok">'+
+    '<div class="podm-lbl">Podmienka pre <b>materské</b> — 270 dní v 2 rokoch pred pôrodom <span class="cit">(§ 48 ods. 1)</span>: <b>'+dniM+'</b> / 270 '+
+      (dniM>=270?'<span style="color:var(--ok);font-weight:700">✓ splnené</span>':'<span style="color:var(--err);font-weight:700">chýba '+(270-dniM)+' dní</span>')+'</div>'+
+    '<div class="meter '+(dniM>=270?"ok":"")+'"><i style="width:'+pct+'%"></i></div>'+
+    (kto==="matka"?'<div class="podm-lbl">Podmienka pre <b>tehotenské</b> — 270 dní pred začiatkom 27. týždňa pred pôrodom <span class="cit">(§ 47a ods. 1)</span>: <b>'+a.dniT_mu+'</b> / 270 '+
+      (a.dniT_mu>=270?'<span style="color:var(--ok);font-weight:700">✓ splnené</span>':'<span style="color:var(--err);font-weight:700">chýba '+(270-a.dniT_mu)+' dní</span>')+'</div>'+
+    '<div class="meter '+(a.dniT_mu>=270?"ok":"")+'"><i style="width:'+Math.min(100,a.dniT_mu/270*100)+'%"></i></div>':"")+
+  '</div><div style="display:flex;gap:8px;align-items:flex-end">'+
+  '<button class="btn sm" '+((segs.length&&!(segs.length===1&&segs[0].typ==="studiumUkoncene"))?'disabled title="Funguje na prázdnej časovej osi alebo s jediným obdobím štúdia (to smie upraviť či odstrániť)"':'title="Vyplní dobrovoľné poistenie tak, aby dávky boli maximálne pri najnižšom zaplatenom poistnom; obdobie štúdia smie upraviť"')+' onclick="optimalizuj('+si+',\''+kto+'\')">✦ Optimalizovať</button>'+
+  '<button class="btn sm" onclick="addSeg('+si+',\''+kto+'\')">＋ Pridať obdobie</button></div></div>'+
+  marksRow+bar+
+  '<div class="bar-ax"><span style="left:0">'+fmtD(W0)+'</span>'+
+    (TODAY>=W0&&TODAY<=W1?'<span class="c" style="left:'+(dDiff(W0,TODAY)/DN*100)+'%">dnes</span>':"")+
+    (function(){const pv=dDiff(W0,a.vyl[0])/DN*100;if(pv<=8||pv>=99.5)return"";
+      const txt=kto==="matka"?"začiatok materskej (§ 140)":"otcovské (§ 140)";
+      const tr=pv>88?"translateX(-100%)":"translateX(-50%)";
+      return '<span style="left:'+pv+'%;transform:'+tr+';color:var(--warn);font-weight:700" title="počas poberania materského sa poistné neplatí, poistenie trvá">'+txt+'</span>';})()+'</div>'+
+  '<div class="legend">'+Object.keys(ZDROJE).map(k=>'<span><i style="background:'+ZDROJE[k].f+'"></i>'+ZDROJE[k].n+'</span>').join("")+
+    (!R.narodene?'<span><i style="background:var(--red)"></i>pravdepodobnosť porodenia v danom dni</span>':"")+
+    (kto==="matka"&&!R.narodene?'<span><i style="background:var(--gov2)"></i>začiatok 27. týždňa pred pôrodom (§ 47a)</span>':"")+
+    '<span><i style="background:var(--red);height:11px;width:2px;border-radius:0"></i>stanovený dátum pôrodu</span>'+
+    (a.ro?'<span><i style="background:none;border-bottom:3px dotted var(--gov2);height:4px;width:16px;border-radius:0"></i>rozhodujúce obdobie pre DVZ (§ 54)</span>':"")+
+    '<span><i style="background:rgba(120,130,140,.35);border:1px dashed var(--muted);border-radius:0"></i>poistenie trvá, poistné sa neplatí (§ 140)</span></div>'+
+  (segs.length?'<div class="seg-list">'+rows+'</div>':'<div class="empty">Žiadne obdobia — ťahajte myšou po časovej osi alebo použite „＋ Pridať obdobie“.</div>')+
+  '<div class="'+(a.pravdepodobny?"note":"info")+'">Odhad DVZ: <b>'+a.dvz.toFixed(4)+' €/deň</b> ('+a.sposob+')'+(a.zastropovane?" — zastropovaný na "+P.maxDVZ.hodnota+" €":"")+
+   (a.roDni?'.<br>Priemerný mesačný základ v rozhodujúcom období: <b>'+eur0(Math.min(a.priemerMesRO,2*P.priemernaMzda2024))+'</b>'+(a.roPokryte<a.roDni?' — RO pokryté poistením len z '+a.roPokryte+' / '+a.roDni+' dní, priemer teda riedia dni bez základu':'')+'. Materské = 75 % z <b>tohto priemeru</b> (§ 55 ods. 1), nie z aktuálnej mzdy — zmena základu tesne pred pôrodom sa prejaví len pomerne.':'.')+'</div>'+
+  (segs.some(sg=>ZDROJE[sg.typ].vz&&(+sg.vz||0)>2*P.priemernaMzda2024)?
+   '<div class="note"><b>Strop dávok:</b> základ nad <b>'+eur0(2*P.priemernaMzda2024)+'/mes.</b> (2 × priemerná mzda) už materské, tehotenské ani nemocenské nezvyšuje — DVZ je zastropovaný na '+P.maxDVZ.hodnota+' €/deň (§ 55 ods. 2 zák. 461/2003). Poistné sa pritom povinne platí až zo základu '+eur0(P.maxVZmesacny.hodnota)+'/mes. (§ 138)'+
+   (segs.some(sg=>sg.typ==="dobrovolne"&&(+sg.vz||0)>2*P.priemernaMzda2024)?'; pri <b>dobrovoľnom</b> poistení je zvolený základ nad '+eur0(2*P.priemernaMzda2024)+' čistá strata — 33,15 % z nadlimitnej časti dávku nezvýši':"")+'.</div>':"")+
+  (a.vylDni>0?'<div class="info"><b>Poistné počas materskej sa neplatí:</b> od '+fmtD(a.vyl[0])+' (začiatok poberania materského) do '+fmtD(Math.min(a.vyl[1],W1))+' je z platenia vyňatých <b>'+a.vylDni+'</b> platených dní — poistenie trvá, ale povinnosť platiť je vylúčená, a to aj keby materské nevzniklo pre nesplnených 270 dní (§ 140 ods. 1 písm. b), ods. 2 zák. 461/2003). Súčet „zaplatené poistné" preto počíta len skutočné platby z vlastného vrecka. '+
+   'Ak poistenie v tomto období ukončíte (potiahnite koniec obdobia na začiatok materskej), o nárok neprídete — kryje vás 8-mesačná ochranná lehota (§ 32 ods. 2); držať poistenie počas materskej je však bezplatné a zachová vám ho na neskôr (napr. reťazenie pri ďalšom dieťati). Platiť by ste opäť začali až po skončení materskej.</div>':"")+
+  (s[kto].optim&&segs.length?'<div class="info"><b>✦ Optimalizovaný plán</b> (v medziach zákona, len dobrovoľné poistenie):<br>'+
+   '1. <b>Minimálny základ '+eur0(P.minVZmesacny.hodnota)+'</b> — najlacnejšie doplnenie podmienky 270 dní ('+eur(P.minVZmesacny.hodnota*12/365*0.3315)+'/deň).<br>'+
+   '2. <b>Medzera 1 deň</b> — odhlásenie a nové prihlásenie: nové poistenie má vlastné rozhodujúce obdobie (§ 54), staré lacné dni doň nevstupujú, na 270 dní sa však počítajú (§ 48 ods. 1).<br>'+
+   '3. <b>Základ '+eur0(2*P.priemernaMzda2024)+'</b> (2 × priemerná mzda — vyšší dávku nezvýši, § 55 ods. 2) od <b>26 týždňov'+(s[kto].optimRez?' + rezerva '+s[kto].optimRez+' dní na posun lekárom určeného termínu':'')+' pred začiatkom materskej</b> (§ 57 ods. 1 písm. d)) → DVZ = strop '+P.maxDVZ.hodnota+' €/deň → maximálne materské aj tehotenské.<br>'+
+   '4. Od začiatku materskej sa poistné neplatí (§ 140) — poistenie preto zdarma pokračuje.<br>'+
+   (s[kto].optimStudy==="kept"?'5. <b>Štúdium ponechané</b> — jeho dni sa zadarmo počítajú do 270 dní pre materské (na tehotenské sa nepočítajú, § 47a ods. 1).<br>':
+    s[kto].optimStudy==="trimmed"?'5. <b>Štúdium skrátené</b>, aby uvoľnilo miesto platenej fáze — zvyšné dni sa zadarmo počítajú do 270 dní pre materské.<br>':
+    s[kto].optimStudy==="removed"?'5. <b>Štúdium odstránené</b> — v optimálnom rozvrhu preň nezostal priestor.<br>':"")+
+   'Skorší začiatok fázy 3 by len zvyšoval poistné bez zvýšenia dávky; neskorší by dávku zrazil na minimum. Ide o orientačnú simuláciu — reálne prihlášky/odhlášky robíte v Sociálnej poisťovni (RFO).</div>':"")+
+  ((a.typNar==="dobrovolne"&&a.pravdepodobny)?'<div class="note"><b>26-týždňová podmienka:</b> nové dobrovoľné poistenie musí trvať nepretržite aspoň 26 týždňov pred vznikom dôvodu (začiatok materskej = 6. týždeň pred pôrodom, t. j. založené ~32 týždňov pred pôrodom), inak sa materské určí len z pravdepodobného DVZ ≈ '+eur(0.75*P.minVZmesacny.hodnota/30)+'/deň (§ 57 ods. 1 písm. d), ods. 3). Zvýšenie základu v trvajúcom poistení sa navyše riedi priemerom rozhodujúceho obdobia.</div>':"")+
+  (silTen?'<label class="q">Čistý mesačný služobný plat '+(kto==="matka"?"policajtky/vojačky":"policajta/vojaka")+'</label>'+
+    '<div class="inline"><div>'+num(si,kto==="matka"?"matkaCistyPlat":"otecCistyPlat",kto==="matka"?s.matkaCistyPlat:s.otecCistyPlat,50,"€/mes. čistý")+'</div>'+
+    '<div style="flex:2 1 300px"><p class="hint">Materské podľa 328/2002 = 100 % čistého denného platu (strop '+eur(0.75*P.maxDVZ.hodnota)+'/deň); tehotenské 12 % max. DVZ. Obdobie služby vyznačte zdrojom „Štátna služba“. <span class="cit">§ 9–10 zák. 328/2002</span></p></div></div>':"")+
+  (kto==="matka"?sw(si,"retazenie","Tesne predtým som poberala materské / rodičovskú dovolenku na staršie dieťa","DVZ neklesne pod DVZ predchádzajúceho materského <span class=cit>§ 57 ods. 4 zák. 461/2003</span>")+
+    (s.retazenie?'<div class="inline" style="margin-top:8px"><div>'+num(si,"predoslyDVZ",s.predoslyDVZ,0.01,"€/deň")+'</div><div style="flex:2 1 260px"><p class="hint">Predchádzajúci DVZ nájdete v rozhodnutí Sociálnej poisťovne.</p></div></div>':""):"")+
+  (kto==="matka"?'<label class="q">Je matka študentkou (bez nároku na tehotenské zo SP)?</label><div class="choices c4">'+
+    ["nie","ss","vs"].map(v=>'<button class="choice '+(s.matka.studium===v?"sel":"")+'" onclick="APP.scenare['+si+'].matka.studium=\''+v+'\';render()"><span class="t">'+({nie:"Nie",ss:"Plnoletá žiačka SŠ",vs:"Študentka VŠ"}[v])+'</span></button>').join("")+
+  '</div><p class="hint">Tehotenské štipendium 200 €/mes. od 27. týždňa pred očakávaným dňom pôrodu, ak nie je nárok na tehotenské. <span class="cit">§ 96b zák. 131/2002; § 149a zák. 245/2008</span></p>':"")+
+  (kto==="otec"?sw(si,"otecDlhe","Otec plánuje po 6. týždni od pôrodu prevziať starostlivosť (dlhé materské otca)","28 týž. 75 % DVZ do 3 rokov; matka nesmie poberať materské ani RP <span class=cit>§ 49 ods. 3 písm. e) zák. 461/2003</span>"):"")+
+  nav(si,s,"Pokračovať",true);
+}
+/* ✦ Optimalizácia: max. dávky pri min. poistnom, v medziach zákona (len dobrovoľné poistenie).
+   Fáza 1 — minimálny základ (762 €) presne na doplnenie podmienky 270 dní (najlacnejšie dni).
+   Medzera 1 deň — odhlásenie a nové prihlásenie ⇒ nové poistenie s vlastným RO (§ 54).
+   Fáza 2 — základ 2 × priemerná mzda (3 048 € — vyšší už dávku nezvýši, § 55 ods. 2),
+   začiatok presne 26 týždňov pred začiatkom materskej (§ 57 ods. 1 písm. d)) ⇒ RO celé
+   pri maxime ⇒ DVZ = strop. Od začiatku materskej sa poistné neplatí (§ 140), preto
+   poistenie zdarma pokračuje do konca okna. */
+window.optimalizuj=(si,kto)=>{
+  const s=APP.scenare[si];
+  const segs=s[kto].segs;
+  /* povolené: prázdna os, alebo jediné (ľavé) obdobie ŠTÚDIA — to smie optimalizátor upraviť/odstrániť */
+  const study=(segs.length===1&&segs[0].typ==="studiumUkoncene")?segs[0]:null;
+  if(segs.length&&!study)return;
+  const R=refDates(s),B=R.B,W0=R.W0,W1=R.W1;
+  const NAR=addW(B,-6),teh27=addW(B,-27);
+  const maxZaklad=Math.round(2*P.priemernaMzda2024);
+  /* bezpečnostná rezerva na posun lekárom určeného termínu: 14 dní pri odhade termínu
+     (oplodnenie/menštruácia/dnes), 4 dni pri už určenom termíne (možná revízia) */
+  const REZ=s.faza!=="tehotna"?0:(s.datumRezim==="lekar"?4:14);
+  const start2=addD(NAR,-(182+REZ));
+  const end1=addD(start2,-2);                              // medzera 1 deň = nové poistenie
+  const kotva=kto==="matka"?teh27:B;                       // tehotenské: 270 dní pred 27. týždňom; otec: pred pôrodom
+  const dniF2=Math.max(0,dDiff(start2,Math.min(kotva,NAR))+1);
+  let sOd=null,sDo=null;
+  if(study){sOd=Math.max(W0,fromIso(study.od));sDo=Math.min(fromIso(study.do),W1);}
+  /* potreba platených dní fázy 1: pre matku ju diktuje tehotenské (štúdium sa naň nepočíta, § 47a);
+     u otca sa štúdium počíta na 270 dní materského (§ 48 ods. 1) a potrebu znižuje — iteratívne,
+     lebo prípadné skrátenie štúdia závisí od dĺžky fázy 1 */
+  let potreba=Math.max(0,270-dniF2)+5;                     // +5 dní rezerva
+  let p1s,p1e,studyStav=null;
+  for(let it=0;it<6;it++){
+    if(!study){p1e=end1;p1s=Math.max(W0,addD(end1,-(potreba-1)));break;}
+    if(sOd>end1){studyStav="removed";p1e=end1;p1s=Math.max(W0,addD(end1,-(potreba-1)));break;}
+    if(dDiff(sDo,end1)>=potreba){                          // fáza 1 sa vojde ZA štúdium → štúdium ostáva celé
+      p1s=addD(sDo,1);p1e=addD(sDo,potreba);studyStav="kept";
+    }else{                                                 // nevojde sa → fáza 1 končí na hranici, štúdium sa skráti
+      p1e=end1;p1s=Math.max(W0,addD(end1,-(potreba-1)));
+      studyStav=(addD(p1s,-1)>=sOd)?"trimmed":"removed";
+    }
+    if(kto==="matka")break;                                // matke štúdium potrebu nemení
+    const sKon=studyStav==="kept"?sDo:studyStav==="trimmed"?addD(p1s,-1):null;
+    const keep=sKon!==null?Math.max(0,dDiff(sOd,Math.min(sKon,B))+1):0;
+    const nova=Math.max(0,270-dniF2-keep)+5;
+    if(nova===potreba)break;
+    potreba=nova;
+  }
+  if(study){
+    if(studyStav==="removed")segs.length=0;
+    else{study.od=iso(sOd);study.do=iso(studyStav==="trimmed"?addD(p1s,-1):sDo);}
+  }
+  if(potreba>0&&p1e>=p1s)
+    segs.push({id:uid++,typ:"dobrovolne",vz:P.minVZmesacny.hodnota,od:iso(p1s),do:iso(p1e)});
+  segs.push({id:uid++,typ:"dobrovolne",vz:maxZaklad,od:iso(start2),do:iso(W1)});
+  s[kto].optim=true;s[kto].optimStudy=studyStav;s[kto].optimRez=REZ;
+  render();
+};
+window.setSegTyp=(si,kto,i,v)=>{const sg=APP.scenare[si][kto].segs[i];sg.typ=v;if(!ZDROJE[v].vz)sg.vz=0;else if(!sg.vz)sg.vz=1200;render();};
+window.delSeg=(si,kto,i)=>{APP.scenare[si][kto].segs.splice(i,1);render();};
+window.addSeg=(si,kto)=>{
+  const s=APP.scenare[si],R=refDates(s),W0=R.W0,W1=R.W1,DN=dDiff(W0,W1)+1;
+  const busy=new Uint8Array(DN);
+  for(const sg of s[kto].segs){const{od,do:doD}=normSeg(sg,W0,W1);for(let i=dDiff(W0,od);i<=dDiff(W0,doD);i++)if(i>=0&&i<DN)busy[i]=1;}
+  let bs=-1,bl=0,cs=-1;
+  for(let i=0;i<=DN;i++){if(i<DN&&!busy[i]){if(cs<0)cs=i;}else if(cs>=0){if(i-cs>bl){bl=i-cs;bs=cs;}cs=-1;}}
+  if(bs<0){bs=0;bl=Math.min(DN,180);}
+  s[kto].segs.push({id:uid++,typ:"zamestnanec",vz:1200,od:iso(addD(W0,bs)),do:iso(addD(W0,bs+bl-1))});render();};
+
+/* ── hover nad obdobím v osi zvýrazní jeho detailný riadok farbou obdobia ── */
+document.addEventListener("mouseover",e=>{
+  const seg=e.target.closest?e.target.closest(".bar .seg"):null;
+  if(!seg||seg.dataset.i===undefined)return;
+  const bar=seg.closest(".bar");if(!bar||bar.dataset.si===undefined)return;
+  const row=document.getElementById("segrow_"+bar.dataset.si+"_"+bar.dataset.kto+"_"+seg.dataset.i);
+  if(!row)return;
+  const sg=APP.scenare[+bar.dataset.si][bar.dataset.kto].segs[+seg.dataset.i];
+  row.classList.add("hl");
+  row.style.setProperty("--hlc",sg?ZDROJE[sg.typ].f:"var(--gov)");
+});
+document.addEventListener("mouseout",e=>{
+  const seg=e.target.closest?e.target.closest(".bar .seg"):null;
+  if(!seg)return;
+  document.querySelectorAll(".seg-row.hl").forEach(r=>r.classList.remove("hl"));
+});
+
+/* ── ťahanie myšou na časovej osi ──
+   Kolízie: ťahané obdobie má prednosť — susedné obdobia odsúva (orezáva ich hranicu).
+   Susedia sa každý pohyb prepočítavajú z PÔVODNÝCH hraníc, takže pri stiahnutí ťahaného
+   obdobia späť sa automaticky zotavia. Až uvoľnenie tlačidla zafixuje obe hranice. */
+let drag=null;
+/* orez suseda [od,do] mimo aktívneho [a,b]; pri obojstrannom presahu ostane väčšia časť */
+function klip(od,doD,a,b){
+  if(doD<a||od>b)return[od,doD];                 // bez kolízie → pôvodné hranice (zotavenie)
+  const lava=(od<=a-1),prava=(doD>=b+1);
+  if(lava&&prava)return(a-1-od>=doD-(b+1))?[od,a-1]:[b+1,doD];
+  if(lava)return[od,a-1];
+  if(prava)return[b+1,doD];
+  return[1,0];                                   // celé pohltené
+}
+window.__klip=klip;
+document.addEventListener("pointerdown",e=>{
+  const bar=e.target.closest(".bar");if(!bar||!bar.dataset.si)return;
+  const si=+bar.dataset.si,kto=bar.dataset.kto,s=APP.scenare[si];
+  const R=refDates(s),W0=R.W0,W1=R.W1,DN=dDiff(W0,W1)+1;
+  const rect=bar.getBoundingClientRect();
+  const dayAt=x=>Math.round(Math.min(1,Math.max(0,(x-rect.left)/rect.width))*(DN-1));
+  const d0=dayAt(e.clientX);
+  const seg=e.target.closest(".seg");
+  let activeI=-1;
+  if(e.target.classList.contains("h")){       // zmena okraja
+    const i=+e.target.dataset.i,sg=s[kto].segs[i],{od,do:doD}=normSeg(sg,W0,W1);
+    drag={si,kto,rect,DN,W0,mode:e.target.classList.contains("l")?"L":"R",sgAct:sg,od:dDiff(W0,od),do:dDiff(W0,doD),el:seg};activeI=i;
+  }else if(seg){                              // presun celého obdobia
+    const i=+seg.dataset.i,sg=s[kto].segs[i],{od,do:doD}=normSeg(sg,W0,W1);
+    drag={si,kto,rect,DN,W0,mode:"M",sgAct:sg,od:dDiff(W0,od),do:dDiff(W0,doD),grab:d0-dDiff(W0,od),el:seg};activeI=i;
+  }else{                                      // nové obdobie ťahaním
+    const ghost=document.createElement("div");ghost.className="seg";ghost.style.background="var(--c-zam)";ghost.style.opacity=".65";
+    ghost.style.left=(d0/DN*100)+"%";ghost.style.width=(1/DN*100)+"%";
+    bar.appendChild(ghost);
+    drag={si,kto,rect,DN,W0,mode:"C",a:d0,b:d0,el:ghost};
+  }
+  /* snímka pôvodných hraníc susedov + ich DOM uzly */
+  const nodes=[...bar.querySelectorAll('.seg[data-i]')];
+  drag.nb=s[kto].segs.map((sg,idx)=>{
+    if(idx===activeI)return null;
+    const nz=normSeg(sg,W0,W1);
+    return{sg,od:dDiff(W0,nz.od),do:dDiff(W0,nz.do),el:nodes.find(n=>+n.dataset.i===idx)||null,ka:null,kb:null};
+  }).filter(Boolean);
+  e.preventDefault();
+});
+function aktivny(){return drag.mode==="C"
+  ?[Math.min(drag.a,drag.b),Math.max(drag.a,drag.b)]
+  :[drag.od,drag.do];}
+function odsunSusedov(){
+  const{DN}=drag,[a,b]=drag.out?[-9999,-9998]:aktivny();   // odtiahnuté mimo os → susedia sa zotavia
+  for(const n of drag.nb){
+    const[ka,kb]=klip(n.od,n.do,a,b);
+    n.ka=ka;n.kb=kb;
+    if(!n.el)continue;
+    if(kb<ka){n.el.style.display="none";}
+    else{n.el.style.display="";n.el.style.left=(ka/DN*100)+"%";n.el.style.width=(Math.max(1,kb-ka+1)/DN*100)+"%";}
+  }
+}
+document.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  const{rect,DN}=drag;
+  const day=Math.round(Math.min(1,Math.max(0,(e.clientX-rect.left)/rect.width))*(DN-1)); // mimo formulára → orez na hranicu
+  if(drag.mode==="C"){drag.b=day;}
+  else if(drag.mode==="M"){const len=drag.do-drag.od;let a=day-drag.grab;a=Math.max(0,Math.min(DN-1-len,a));drag.od=a;drag.do=a+len;}
+  else if(drag.mode==="L"){drag.od=Math.min(day,drag.do);}
+  else if(drag.mode==="R"){drag.do=Math.max(day,drag.od);}
+  /* odtiahnutie kolmo od osi (> 36 px) = vytrhnutie: obdobie sa prichytí na kurzor
+     a zpriehľadnie; pustením sa zmaže */
+  if(drag.mode==="M"){
+    const out=e.clientY<rect.top-36||e.clientY>rect.bottom+36;
+    if(out!==!!drag.out){drag.out=out;
+      if(out){drag.el.style.opacity=".45";drag.el.style.position="fixed";drag.el.style.bottom="auto";
+        drag.el.style.height=(rect.height-16)+"px";drag.el.style.zIndex="1000";drag.el.title="Pustením obdobie zmažete";}
+      else{drag.el.style.opacity="";drag.el.style.position="";drag.el.style.bottom="";
+        drag.el.style.height="";drag.el.style.zIndex="";drag.el.style.top="";drag.el.title="";}
+    }
+    if(drag.out){
+      const wpx=Math.max(24,(drag.do-drag.od+1)/DN*rect.width);
+      drag.el.style.width=wpx+"px";
+      drag.el.style.left=(e.clientX-wpx/2)+"px";
+      drag.el.style.top=(e.clientY-(rect.height-16)/2)+"px";
+    }
+  }
+  if(!drag.out){
+    const[a,b]=aktivny();
+    drag.el.style.left=(a/DN*100)+"%";drag.el.style.width=(Math.max(1,b-a+1)/DN*100)+"%";
+  }
+  odsunSusedov();
+});
+document.addEventListener("pointerup",e=>{
+  if(!drag)return;
+  const{si,kto,W0,mode}=drag,s=APP.scenare[si];
+  if(mode==="M"&&drag.out){                     // vytrhnuté mimo os → zmazať
+    const ix=s[kto].segs.indexOf(drag.sgAct);if(ix>=0)s[kto].segs.splice(ix,1);
+    drag=null;render();return;
+  }
+  const[a,b]=aktivny();
+  const platne=mode!=="C"||b-a>=2;
+  if(platne){
+    /* 1. zafixuj odsunutých susedov (ako sú práve zobrazení); pohltených odstráň */
+    for(const n of drag.nb){
+      if(n.ka===null)continue;                  // nebol žiadny pohyb
+      if(n.kb<n.ka){const ix=s[kto].segs.indexOf(n.sg);if(ix>=0)s[kto].segs.splice(ix,1);}
+      else{n.sg.od=iso(addD(W0,n.ka));n.sg.do=iso(addD(W0,n.kb));}
+    }
+    /* 2. zafixuj aktívne obdobie (podľa identity objektu — indexy sa mohli posunúť) */
+    if(mode==="C")s[kto].segs.push({id:uid++,typ:"zamestnanec",vz:1200,od:iso(addD(W0,a)),do:iso(addD(W0,b))});
+    else{drag.sgAct.od=iso(addD(W0,a));drag.sgAct.do=iso(addD(W0,b));}
+  }
+  if(!platne&&mode==="C")drag.el.remove();
+  drag=null;render();
+});
+
+/* ═══ KROK — príjmy ═══ */
+function vPrijmy(s,si){
+  return '<h2>Príjmy a sociálna situácia</h2><p class="lead">Pre daňový bonus, pomoc v hmotnej núdzi a príspevok na starostlivosť.</p>'+
+  '<label class="q">Základ dane rodiča, ktorý si uplatní daňový bonus</label><div class="choices">'+
+    choice(si,"zdRezim","zaklad","Zadám základ dane priamo","ročný čiastkový základ dane (§ 5 / § 6)")+
+    choice(si,"zdRezim","hruby","Zadám hrubý ročný príjem","základ dane vypočítame: hrubý príjem − odvody zamestnanca 13,4 %")+
+  '</div>'+
+  '<div class="inline" style="margin-top:10px">'+
+  (s.zdRezim==="zaklad"
+    ?'<div>'+num(si,"zakladDane",s.zakladDane,500,"€/rok základ")+'</div>'
+    :'<div>'+num(si,"hrubyRocny",s.hrubyRocny,500,"€/rok hrubý")+'</div><div style="flex:0 1 220px"><p class="hint">→ základ dane ≈ <b>'+eur0((s.hrubyRocny||0)*0.866)+'</b></p></div>')+
+  '<div>'+num(si,"zakladDanePartner",s.zakladDanePartner,500,"€/rok partner")+'</div></div>'+
+  '<p class="hint">Bonus 100 €/mes. na dieťa do 15 r.; strop 29 – 64 % základu dane (možno pripočítať základ partnera); nad 27 432 € sa znižuje. <span class="cit">§ 33 zák. 595/2003</span></p>'+
+  sw(si,"planSkolka","Rodič plánuje pracovať/študovať a platiť za starostlivosť o dieťa do 3 rokov","príspevok na starostlivosť (max 280 €/mes.) — alternatíva k RP <span class=cit>zák. 561/2008</span>")+
+  (s.planSkolka?'<div class="inline" style="margin-top:8px"><div><span class="lb hint">Poskytovateľ</span><select onchange="setS('+si+',\'skolkaTyp\',this.value)">'+
+    [["zariadenie","Zariadenie / živnostník (max 280 €)"],["detskaSkupina","Detská skupina (max 160 €)"],["statnaMS","Štátna materská škola (max 80 €)"],["inaOsoba","Iná fyzická osoba / rodič (41,10 €)"]].map(o=>'<option value="'+o[0]+'" '+(s.skolkaTyp===o[0]?"selected":"")+'>'+o[1]+'</option>').join("")+
+    '</select></div><div>'+num(si,"skolkaUhrada",s.skolkaUhrada,10,"€/mes. úhrada")+'</div></div>':"")+
+  sw(si,"nizkyPrijem","Príjem domácnosti je nízky — preveriť pomoc v hmotnej núdzi","dávka + ochranný príspevok pre tehotnú od 8. týždňa pred pôrodom <span class=cit>zák. 417/2013</span>")+
+  (s.nizkyPrijem?'<div class="inline" style="margin-top:8px"><div>'+num(si,"hnPrijem",s.hnPrijem,10,"€/mes. čistý príjem")+'</div></div>'+
+   '<label class="switch '+(s.hnByvanie?"on":"")+'" style="margin-top:8px"><input type="checkbox" '+(s.hnByvanie?"checked":"")+' onchange="setS('+si+',\'hnByvanie\',this.checked)"><span><span class="t">Domácnosť vlastní/prenajíma byt alebo dom</span><span class="d">podmienka príspevku na bývanie (§ 14)</span></span></label>':"")+
+  '<h3>Výhľad po treťom roku dieťaťa</h3>'+
+  (s.zdravDieta==="ok"?sw(si,"msNeprijatie","Počítam s možnosťou, že dieťa neprijmú do štátnej materskej školy","RP môže trvať do 6 rokov — podmienené rozhodnutím a odvolaním <span class=cit>§ 3 ods. 2 písm. d), ods. 9 zák. 571/2009</span>"):'<p class="hint">Pri dlhodobo nepriaznivom stave trvá RP do 6 rokov automaticky.</p>')+
+  (s.partner===false?sw(si,"striedava","Dieťa bude zverené do striedavej osobnej starostlivosti oboch rodičov","RP a prídavok podľa dohody, inak striedavo <span class=cit>§ 3 ods. 6 zák. 571/2009; § 2 ods. 5 zák. 600/2003</span>"):"")+
+  '<h3>Očakávaný rast veličín (orientačne)</h3>'+
+  sw(si,"valorizacia","Zohľadniť medziročný rast súm (životné minimum, priemerná mzda)","rodičovský príspevok sa valorizuje každý 1. január koeficientom rastu ŽM <span class=cit>§ 4 ods. 7 zák. 571/2009</span>")+
+  (s.valorizacia?'<div class="inline" style="margin-top:8px"><div>'+num(si,"rastPct",s.rastPct,0.5,"% ročne")+'</div><div style="flex:2 1 300px"><p class="hint">Jedna globálna sadzba pre ŽM (→ RP), priemernú mzdu (→ stropy) a minimálnu mzdu. Prídavok a daňový bonus zákonný valorizačný mechanizmus nemajú — ostávajú konštantné.</p></div></div>':"")+
+  nav(si,s,"Zobraziť výsledok",true);
+}
+
+/* ═══ ENGINE (per scenár) ═══ */
+const pod=(ok,text,cit)=>({ok,text,cit});
+/* Neistota kotvy: podmienky viazané na očakávaný deň pôrodu URČENÝ LEKÁROM (tehotenské 270 dní
+   k 27. týždňu; prah 90 dní / 26 týždňov k začiatku materskej) sú v režimoch výpočtu z oplodnenia/
+   menštruácie/dnes neisté — lekár termín ešte len určí (ultrazvuk σ≈5 dní, Naegele z LMP σ≈3 dni). */
+function erf(x){const s0=x<0?-1:1;x=Math.abs(x);const t=1/(1+0.3275911*x);
+  const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return s0*y;}
+function sigPDD(s){return s.faza!=="tehotna"?0:(s.datumRezim==="lekar"?0:s.datumRezim==="menstruacia"?3:5);}
+/* P(kotva vydrží) = P(lekárom určený termín nebude skorší než naša rezerva v dňoch) */
+function pKotva(rezervaDni,sig){
+  if(rezervaDni===null||rezervaDni===undefined)return 1;
+  if(sig<=0)return rezervaDni>=0?1:0;
+  return Math.min(1,Math.max(0,0.5*(1+erf((rezervaDni+0.5)/(sig*Math.SQRT2)))));
+}
+function zakladDane(s){return s.zdRezim==="hruby"?(s.hrubyRocny||0)*0.866:(s.zakladDane||0);}
+function rastF(s,t){return s.valorizacia?Math.pow(1+(s.rastPct||0)/100,Math.max(0,rok(t)-2026)):1;}
+
+function vyhodnot(s){
+  const R=refDates(s),B=R.B,D=R.D;
+  const maSamOtec=s.vyplna==="otec"&&s.partner===false;
+  const maMatku=!maSamOtec||s.otecSam==="nemoze"||s.otecSam==="oddelene"; // matka žije a je relevantná ako osoba
+  const matkaZomrela=maSamOtec&&s.otecSam==="zomrela";
+  const am=(s.vyplna!=="otec"||s.partner)?anal(s,"matka"):null;
+  const ao=(s.partner||s.vyplna==="otec")?anal(s,"otec"):null;
+  const V=[];
+  const viac=s.pocetNaraz>1;
+  const pobytOK=s.pobyt!=="ziadny";
+  const bydlisko=Object.values(s.bydliskoKrit).filter(Boolean).length>=2;
+  const horizont=addY(B,s.zdravDieta==="ok"?3:6);
+  const silM=am&&(s.silove==="matka"||s.silove==="obaja"), silO=ao&&(s.silove==="otec"||s.silove==="obaja");
+  if(am&&s.retazenie&&s.predoslyDVZ>0){const f=Math.min(s.predoslyDVZ,P.maxDVZ.hodnota);
+    if(f>am.dvz){am.dvz=f;am.sposob="reťazenie materských (§ 57 ods. 4)";}}
+  const dvzSilM=silM?Math.min(s.matkaCistyPlat*12/365,0.75*P.maxDVZ.hodnota):0;
+  const dvzSilO=silO?Math.min(s.otecCistyPlat*12/365,0.75*P.maxDVZ.hodnota):0;
+  const umrtieTs=s.umrtie==="zomrelo"&&s.datumUmrtia?fromIso(s.datumUmrtia):(s.umrtie==="zomrelo"?addD(B,14):null);
+  const koordCondi={ok:null,text:"KOORDINÁCIA EÚ: prednostne vypláca štát výkonu práce; SR dopláca rozdiel",cit:"nariadenie (ES) 883/2004 čl. 67–68"};
+  const pravdep=x=>Math.round(x*100);
+
+  /* — tehotenské + štipendiá (len ak matka relevantná v scenári) — */
+  let matOk=false,matDo=null,matDenna=0,matOd=null,tyzdne=0,probM=null;
+  const sig=sigPDD(s);
+  if(am){
+    if(s.faza==="tehotna"){
+      const okT=am.dniT_mu>=270;
+      const pT=okT?pKotva(am.dniT_mu-270,sig):0;
+      const denna=silM?0.12*P.maxDVZ.hodnota:Math.max(0.15*am.dvz,0.10*P.maxDVZ.hodnota*(okT?1:0));
+      const dni=Math.max(0,dDiff(R.teh27,B));
+      V.push({id:"tehotenske",stav:okT?(pT>=0.995?"narok":"podmieneny"):"bez",od:R.teh27,do:B,denna,suma:okT?denna*dni:0,
+        pravdepodobnost:okT&&pT<0.995?pT:undefined,
+        dovody:(okT&&pT<0.995?[{ok:null,text:"KOTVA TERMÍNU: 27. týždeň sa počíta od termínu, ktorý ešte len určí lekár (σ≈"+sig+" dní) — rezerva podmienky je len "+(am.dniT_mu-270)+" dní ⇒ P(nárok) ≈ "+Math.round(pT*100)+" %",cit:"§ 47a ods. 1"}]:[]).concat(silM?[
+          pod(okT,am.dniT_mu+" / 270 dní zabezpečenia/poistenia (systémy 328/2002 + 461/2003 sa sčítavajú)","§ 9 ods. 1 zák. 328/2002"),
+          pod(true,"12 % max. DVZ = "+eur(denna)+"/deň (pevná suma); vypláca ministerstvo","§ 9 ods. 3 zák. 328/2002")
+        ]:[
+          pod(okT,am.dniT_mu+" / 270 dní NP pred začiatkom 27. týždňa pred očakávaným dňom pôrodu; štúdium sa nepočíta","§ 47a ods. 1"),
+          pod(true,"15 % DVZ = "+eur(0.15*am.dvz)+"/deň, min. "+eur(0.10*P.maxDVZ.hodnota)+"/deň","§ 47c"),
+          pod(true,"od "+fmtD(R.teh27)+" do pôrodu","§ 47a ods. 2")])});
+      if(s.matka.studium!=="nie"){
+        const okS=!okT&&s.pobyt==="trvaly";
+        const dniS=Math.max(0,dDiff(Math.max(R.teh27,TODAY),B));
+        V.push({id:"tehotenske_stipendium",stav:okS?"narok":"bez",od:R.teh27,do:B,suma:okS?Math.ceil(dniS/30.4)*200:0,mesacne:200,
+          dovody:[pod(!okT,"nemá nárok na tehotenské zo SP","§ 96b ods. 1 zák. 131/2002"),
+            pod(s.pobyt==="trvaly","trvalý pobyt v SR","§ 96b ods. 1"),
+            pod(true,"200 €/mes. od 27. týždňa pred očakávaným dňom pôrodu","§ 96b ods. 3")]});
+      }
+      if(s.matka.studium==="vs"){
+        V.push({id:"socialne_stipendium_vs",stav:"podmieneny",od:TODAY,do:horizont,suma:0,
+          dovody:[pod(true,"10 € až ≈ 410 €/mes. podľa príjmu okruhu; mimo bydliska × 1,2","§ 96 zák. 131/2002; § 5 vyhl. 102/2006"),
+            {ok:null,text:"dieťa okruh spoločne posudzovaných osôb zväčší — nárok sa môže zvýšiť; žiada sa na VŠ",cit:"§ 3, § 4 vyhl. 102/2006"}]});
+      }
+    }
+    /* — materské matky (s pravdepodobnosťou) — */
+    probM=probMaterske(s,am);
+    matOk=probM.p>0&&(silM||true);
+    tyzdne=s.umrtie==="mrtve"?14:(viac?43:(s.osamela===true&&!s.partner?37:34));
+    matOd=R.narodene?Math.min(R.matStart,B):R.matStart;
+    matDo=addD(addW(matOd,tyzdne),-1);
+    if(umrtieTs&&s.umrtie==="zomrelo")matDo=Math.min(matDo,addD(umrtieTs,13));
+    matDenna=silM?dvzSilM:0.75*am.dvz;
+    const pKotM=pKotva(am.rezervaPrah,sig);
+    const pM=probM.p*pKotM;
+    const stavM=pM>=0.995?"narok":pM>0?"podmieneny":"bez";
+    V.push({id:"materske_matka",stav:stavM,od:matOd,do:matDo,denna:matDenna,pravdepodobnost:pM,
+      suma:pM>0?matDenna*(dDiff(matOd,matDo)+1):0,
+      dovody:[
+        pod(am.dniM_mu>=270,am.dniM_mu+" / 270 dní k najpravdepodobnejšiemu dňu pôrodu ("+fmtD(B)+")",silM?"§ 10 ods. 1 zák. 328/2002":"§ 48 ods. 1, § 49a"),
+        (!R.narodene&&probM.p>0&&probM.p<0.995)?{ok:null,text:"PRAVDEPODOBNOSŤ NÁROKU (270 dní k pôrodu): "+pravdep(probM.p)+" % — splnené len pre pôrod "+(probM.prvyDen?("od "+fmtD(probM.prvyDen)):"v časti rozdelenia"),cit:"rozdelenie dňa pôrodu ±35 dní"}:null,
+        (pKotM<0.995)?{ok:null,text:"KOTVA TERMÍNU: prah "+(am.typNar==="dobrovolne"?"26 týždňov":"90 dní")+" sa meria k začiatku materskej odvodenému od termínu, ktorý ešte len určí lekár (σ≈"+sig+" dní); rezerva plánu je "+am.rezervaPrah+" dní ⇒ P(kotva) ≈ "+pravdep(pKotM)+" %; celkovo P(nárok) ≈ "+pravdep(pM)+" %",cit:"§ 54, § 57 ods. 1"}:null,
+        (sig===0&&am.rezervaPrah!==null&&am.rezervaPrah>=0&&am.rezervaPrah<7)?{ok:null,text:"TESNÁ REZERVA: nad prahom "+(am.typNar==="dobrovolne"?"26 týždňov":"90 dní")+" je len "+am.rezervaPrah+" dní — prípadná revízia termínu lekárom o viac dní skôr by dávku zrazila na minimum",cit:"§ 57 ods. 1"}:null,
+        silM?{ok:null,text:"služobný pomer trvá alebo neuplynulo 8 mesiacov od skončenia; vypláca ministerstvo",cit:"§ 10 ods. 16, 21 zák. 328/2002"}
+            :pod(am.drziK(B)||am.ochrannaK(B),am.drziK(B)?"nemocenské poistenie trvá (k "+fmtD(B)+")":(am.ochrannaK(B)?"plynie 8-mesačná ochranná lehota":"poistenie netrvá a ochranná lehota neplynie"),"§ 30, § 32 ods. 2"),
+        silM?pod(true,"100 % čistého denného platu = "+eur(matDenna)+"/deň (strop "+eur(0.75*P.maxDVZ.hodnota)+")","§ 10 ods. 20 zák. 328/2002")
+            :pod(true,"75 % DVZ = "+eur(matDenna)+"/deň ("+am.sposob+")","§ 53, § 54, § 55"),
+        s.umrtie==="mrtve"?{ok:true,text:"dieťa sa narodilo mŕtve → materské 14 týždňov",cit:"§ 48 ods. 7"}:
+        s.umrtie==="zomrelo"?{ok:true,text:"dieťa zomrelo → materské do konca 2. týždňa od úmrtia ("+fmtD(matDo)+")",cit:"§ 48 ods. 8"}:
+        pod(true,tyzdne+" týždňov od "+fmtD(matOd)+(viac?" (viacpočetný pôrod)":(s.osamela===true&&!s.partner)?" (osamelá)":""),"§ 48 ods. 2, 3")
+      ].filter(Boolean)});
+  }else if(maSamOtec&&(s.otecSam==="nemoze"||s.otecSam==="oddelene")){
+    V.push({id:"materske_matka",stav:"bez",od:null,do:null,suma:0,infoCudzi:true,
+      dovody:[{ok:null,text:"Tehotenské a materské sú nároky MATKY z jej nemocenského poistenia — na otca sú neprenosné. Ak si ich matka uplatní, poberá ich ona.",cit:"§ 47a, § 48 zák. 461/2003"},
+              {ok:null,text:"Otec môže získať vlastné materské po 6 týždňoch od pôrodu, ak matka nepoberá materské ani RP na to isté dieťa",cit:"§ 49 ods. 3 písm. e)"}]});
+  }
+
+  /* — otcovské a dlhé materské otca — */
+  let probO=null;
+  if(ao){
+    probO=probMaterske(s,ao);
+    const pKotO=pKotva(ao.rezervaPrah,sig);
+    const pO=probO.p*pKotO;
+    const otOk=pO>0&&s.umrtie!=="mrtve";
+    const otOd=addD(B,1),otDo=addD(otOd,13),otDenna=silO?dvzSilO:0.75*ao.dvz;
+    const stavO=s.umrtie==="mrtve"?"bez":(pO>=0.995?"narok":pO>0?"podmieneny":"bez");
+    V.push({id:"materske_otec_14dni",stav:stavO,od:otOd,do:otDo,denna:otDenna,pravdepodobnost:pO,
+      suma:otOk?otDenna*14:0,
+      dovody:[
+        pod(ao.dniM_mu>=270,ao.dniM_mu+" / 270 dní otca k "+fmtD(B),silO?"§ 10 ods. 10 zák. 328/2002":"§ 49 ods. 1"),
+        (!R.narodene&&pO>0&&pO<0.995)?{ok:null,text:"PRAVDEPODOBNOSŤ NÁROKU: "+pravdep(pO)+" % (riziko "+pravdep(1-pO)+" %"+(pKotO<0.995?"; z toho neistota lekárom určeného termínu P(kotva) ≈ "+pravdep(pKotO)+" %":"")+")",cit:"rozdelenie dňa pôrodu; § 54, § 57"}:null,
+        silO?pod(true,"14 dní × 100 % čistého denného platu = "+eur(otDenna)+"/deň; vypláca ministerstvo","§ 10 ods. 12–13, 20 zák. 328/2002")
+            :pod(true,"14 dní × 75 % DVZ = "+eur(otDenna)+"/deň; čerpanie v prvých 6 týždňoch od pôrodu","§ 49 ods. 1 písm. a), ods. 3 písm. d)"),
+        s.umrtie==="mrtve"?{ok:false,text:"VÝLUKA: vyžaduje starostlivosť o narodené dieťa",cit:"§ 49 ods. 1"}:
+        pod(true,"beží súčasne s materským matky a neruší RP","§ 52 ods. 2; § 3 ods. 11 zák. 571/2009")].filter(Boolean)});
+    const chceDlhe=s.otecDlhe||matkaZomrela||(maSamOtec&&(s.otecSam==="nemoze"||s.otecSam==="zverene"));
+    if(chceDlhe){
+      const dlTyzdne=viac?37:((maSamOtec&&s.osamela!==false)?31:28);
+      const dlOd=matkaZomrela?addD(B,1):addW(B,6),dlDo=addD(addW(dlOd,dlTyzdne),-14);
+      V.push({id:"materske_iny_poistenec",stav:"podmieneny",od:dlOd,do:dlDo,denna:otDenna,suma:pO>0?otDenna*(dDiff(dlOd,dlDo)+1):0,pravdepodobnost:pO,
+        dovody:[
+          pod(pO>0,"270 dní (po otcovskom sa považujú za splnené); P = "+pravdep(pO)+" %","§ 49 ods. 1, 5"),
+          matkaZomrela?pod(true,"matka zomrela → nárok otca od narodenia","§ 49 ods. 3 písm. a)"):
+          maSamOtec&&s.otecSam==="nemoze"?{ok:null,text:"PODMIENKA: lekársky posudok (stav matky ≥ 1 mesiac) a matka nepoberá materské ani RP",cit:"§ 49 ods. 3 písm. b)"}:
+          {ok:null,text:"PODMIENKA: matka počas tohto obdobia nepoberá materské ani RP na to isté dieťa",cit:"§ 49 ods. 3 písm. e)"},
+          pod(true,dlTyzdne+" týždňov mínus vyčerpané otcovské; najdlhšie do 3 rokov dieťaťa","§ 49 ods. 1, 2, 4")].filter(Boolean)});
+    }
+  }
+
+  /* — príspevok pri narodení — */
+  const vylukyPN=[];
+  if(!s.prehliadky&&!matkaZomrela)vylukyPN.push(["neúčasť na preventívnych prehliadkach od 4. mesiaca","§ 3 ods. 4 písm. a)"]);
+  if(!s.dohodaPediater)vylukyPN.push(["chýba dohoda o všeobecnej ambulantnej starostlivosti","§ 3 ods. 3 písm. a)"]);
+  if(s.maloleta)vylukyPN.push(["maloletá matka bez rodičovských práv","§ 3 ods. 3 písm. f)"]);
+  if(s.narodCudzina&&s.davkaCudzina)vylukyPN.push(["obdobná dávka vyplatená v cudzine","§ 3 ods. 3 písm. e)"]);
+  if(s.faza==="nahradna")vylukyPN.push(["dieťa zverené do náhradnej starostlivosti","§ 3 ods. 3 písm. c)"]);
+  const pnOtecOpravneny=matkaZomrela||(maSamOtec&&s.otecSam==="zverene");
+  const pnMozne=!maSamOtec||pnOtecOpravneny;
+  const pnPodm=s.pobyt==="trvaly"&&bydlisko&&pnMozne;
+  const pnOk=pnPodm&&vylukyPN.length===0;
+  const pnZaklad=s.poradiePorodu<=4?829.86:151.37;
+  const pnSuma=(pnZaklad+(viac?75.69:0))*s.pocetNaraz;
+  V.push({id:"prispevok_pri_narodeni",stav:pnOk?"narok":"bez",od:B,do:B,suma:pnOk?pnSuma:0,
+    dovody:[
+      maSamOtec?(pnOtecOpravneny?pod(true,"oprávnenou osobou je otec ("+(matkaZomrela?"matka zomrela":"dieťa zverené otcovi súdom")+")","§ 2 ods. 1 písm. b) zák. 383/2013")
+        :{ok:false,text:"VÝLUKA pre otca: oprávnenou osobou je matka; na otca prechádza len pri jej úmrtí alebo zverení dieťaťa súdom",cit:"§ 2 ods. 1 zák. 383/2013"}):null,
+      pod(s.pobyt==="trvaly","trvalý pobyt v SR","§ 3 ods. 1"),
+      pod(bydlisko,"bydlisko v SR (≥ 2 kritériá)","§ 2 ods. 4"),
+      pod(true,eur(pnZaklad)+" × "+s.pocetNaraz+(viac?" + 75,69 €/dieťa":"")+" — "+s.poradiePorodu+". pôrod","§ 4"),
+      ...vylukyPN.map(v=>({ok:false,text:"VÝLUKA: "+v[0],cit:v[1]+" zák. 383/2013"}))].filter(Boolean)});
+
+  if(s.pocetNaraz>=3||(s.pocetNaraz===2&&s.opakDvojcata)){
+    V.push({id:"prispevok_viac_deti",stav:pobytOK&&bydlisko?"narok":"bez",od:addY(B,1),do:addY(B,15),rocne:110.36*s.pocetNaraz,
+      suma:(pobytOK&&bydlisko)?110.36*s.pocetNaraz*Math.min(14,s.zdravDieta==="ok"?3:6):0,
+      dovody:[pod(true,"110,36 € na dieťa ročne, kým sú aspoň 3 deti ≤ 15 rokov; prvýkrát pri 1. narodeninách","§ 5, § 6, § 8 zák. 383/2013")]});
+  }
+
+  /* — rodičovský príspevok — */
+  const rpVyluky=[];
+  if(s.mimoEU)rpVyluky.push(["pobyt mimo členských štátov bez verejného ZP v SR","§ 3 ods. 10"]);
+  if(s.maloleta&&!maSamOtec)rpVyluky.push(["maloletý rodič bez rodičovských práv","§ 3 ods. 12"]);
+  if(s.umrtie!=="nie")rpVyluky.push(["nárok zaniká smrťou dieťaťa","§ 6 ods. 2 písm. b)"]);
+  const rpOtecMozne=!maSamOtec||matkaZomrela||s.otecSam==="zverene"||s.otecSam==="nemoze"||(s.otecSam==="oddelene"&&s.dietaUOtca);
+  if(!rpOtecMozne)rpVyluky.push(["dieťa nežije v domácnosti otca — RP patrí rodičovi, ktorý zabezpečuje riadnu starostlivosť (spravidla matke)","§ 2, § 3 ods. 1 písm. a)"]);
+  const rpOk=pobytOK&&rpVyluky.length===0;
+  const boloMaterske=(am&&probM&&probM.p>=0.5)||(ao&&probO&&probO.p>=0.5&&(s.otecDlhe||matkaZomrela));
+  const rpZaklad=boloMaterske?500.10:364.80;
+  const rpMes=r10c(rpZaklad*(1+0.25*(s.pocetNaraz-1)));
+  const rpOd=(am&&probM&&probM.p>0)?addD(matDo,1):addD(B,1);
+  const rpDo=horizont;
+  let rpPocet=0,cur=rpOd;const rpPlatby=[];
+  while(cur<=rpDo){rpPlatby.push(cur);rpPocet++;cur=addM(rpOd,rpPocet);}
+  const matMes=matDenna*30.4167;
+  const dorovnanie=(am&&probM&&probM.p>0&&matMes<rpMes)?rpMes-matMes:0;
+  const dorovnMes=dorovnanie>0?Math.max(0,Math.round(dDiff(Math.max(B,matOd||B),matDo||B)/30.4167)):0;
+  let rpSuma=0;if(rpOk){for(const t of rpPlatby)rpSuma+=rpMes*rastF(s,t);rpSuma+=dorovnanie*dorovnMes;}
+  V.push({id:"rodicovsky_prispevok",stav:rpOk?(s.pracaEU!=="nie"?"podmieneny":"narok"):"bez",od:rpOd,do:rpDo,mesacne:rpMes,platby:rpPlatby,
+    suma:rpSuma,dorovnanie,dorovnMes,
+    dovody:[
+      pod(pobytOK,"pobyt v SR","§ 3 ods. 1 písm. b)"),
+      pod(true,(boloMaterske?"500,10 € (po materskom)":"364,80 € (bez materského)")+(viac?" +25 % → "+eur(rpMes):""),"§ 4 ods. 1, 2 + opatrenie 366/2025"),
+      pod(true,"do "+(s.zdravDieta==="ok"?"3":"6")+". roku veku ("+fmtD(rpDo)+")","§ 3 ods. 2"),
+      dorovnanie>0?{ok:true,text:"materské ("+eur(matMes)+"/mes.) je nižšie ako RP → doplatok "+eur(dorovnanie)+"/mes.",cit:"§ 4 ods. 5"}:null,
+      (s.msNeprijatie&&s.zdravDieta==="ok")?{ok:null,text:"MOŽNÉ PREDĹŽENIE do 6 rokov pri neprijatí do štátnej MŠ (žiadosť + odvolanie) — nezapočítané do súčtu",cit:"§ 3 ods. 2 písm. d), ods. 9"}:null,
+      s.striedava?{ok:null,text:"STRIEDAVÁ STAROSTLIVOSŤ: výplata podľa dohody, inak striedavo v pomere starostlivosti",cit:"§ 3 ods. 6–8"}:null,
+      s.valorizacia?{ok:true,text:"valorizácia +"+s.rastPct+" %/rok od 1. 1. 2027 (orientačne)",cit:"§ 4 ods. 7"}:null,
+      s.pracaEU!=="nie"?koordCondi:null,
+      ...rpVyluky.map(v=>({ok:false,text:"VÝLUKA: "+v[0],cit:v[1]+" zák. 571/2009"}))].filter(Boolean)});
+
+  /* — prídavok na dieťa — */
+  const prOtecMozne=!maSamOtec||matkaZomrela||s.otecSam==="zverene"||(s.otecSam==="oddelene"&&s.dietaUOtca)||s.otecSam==="nemoze";
+  const prOk=pobytOK&&!s.mimoEU&&s.umrtie==="nie"&&prOtecMozne;
+  const prMesiacov=Math.max(0,Math.round(dDiff(B,horizont)/30.4167));
+  V.push({id:"pridavok_na_dieta",stav:prOk?(s.pracaEU!=="nie"?"podmieneny":"narok"):"bez",od:B,do:horizont,mesacne:60*s.pocetNaraz,
+    suma:prOk?60*s.pocetNaraz*prMesiacov+(s.nastup1rocnik?110:0):0,
+    dovody:[
+      pod(pobytOK,"pobyt v SR; nezaopatrené dieťa od narodenia","§ 3, § 7 zák. 600/2003"),
+      pod(true,"60 €/mes. × "+s.pocetNaraz+(s.dalsieNezaopatrene?" (+ "+eur0(60*s.dalsieNezaopatrene)+"/mes. na staršie deti — mimo súčtu)":""),"§ 8 ods. 1"),
+      s.nastup1rocnik?{ok:true,text:"+110 € jednorazovo pri nástupe do 1. ročníka",cit:"§ 8 ods. 1"}:null,
+      !prOtecMozne?{ok:false,text:"VÝLUKA pre otca: prídavok patrí osobe, ktorá sa o dieťa stará (matke)",cit:"§ 2, § 7"}:null,
+      s.striedava?{ok:null,text:"STRIEDAVÁ STAROSTLIVOSŤ: výplata podľa dohody, inak striedavo",cit:"§ 2 ods. 5–7"}:null,
+      s.pracaEU!=="nie"?koordCondi:null,
+      s.umrtie!=="nie"?{ok:false,text:"VÝLUKA: dieťa nežije",cit:"§ 7"}:null].filter(Boolean)});
+
+  /* — daňový bonus — */
+  const deti=s.pocetNaraz+s.dalsieNezaopatrene;
+  const limitPct={1:.29,2:.36,3:.43,4:.50,5:.57}[Math.min(deti,5)]||(deti>=6?.64:.29);
+  const zd=zakladDane(s)+(s.zakladDanePartner||0);
+  let bonusMes=100*s.pocetNaraz,bonusRed=0;
+  if(zd>27432)bonusRed=Math.min(bonusMes,(zd-27432)/10/12*s.pocetNaraz);
+  const bonusCap=zd*limitPct/12;
+  const bonusEff=Math.max(0,Math.min(bonusMes-bonusRed,bonusCap));
+  const dbOtecMozne=!maSamOtec||matkaZomrela||s.otecSam==="zverene"||(s.otecSam==="oddelene"&&s.dietaUOtca)||s.otecSam==="nemoze";
+  const dbOk=zakladDane(s)>0&&bonusEff>0&&s.umrtie==="nie"&&dbOtecMozne;
+  V.push({id:"danovy_bonus",stav:dbOk?(s.pracaEU!=="nie"?"podmieneny":"narok"):"bez",od:B,do:horizont,mesacne:bonusEff,
+    suma:dbOk?bonusEff*prMesiacov:0,
+    dovody:[
+      s.pracaEU!=="nie"?koordCondi:null,
+      pod(zakladDane(s)>0,"zdaniteľné príjmy (§ 5 / § 6 ods. 1, 2); základ dane "+eur0(zd)+(s.zdRezim==="hruby"?" (vypočítaný z hrubého príjmu)":""),"§ 33 ods. 1"),
+      pod(true,"100 €/mes. × "+s.pocetNaraz+" od mesiaca narodenia; dieťa v domácnosti daňovníka","§ 33 ods. 1, 2, 5"),
+      pod(bonusEff>=bonusMes-bonusRed-0.005,"strop "+Math.round(limitPct*100)+" % základu dane → max "+eur(bonusCap)+"/mes.","§ 33 ods. 6, 8"),
+      bonusRed>0?{ok:true,text:"základ dane nad 27 432 € → zníženie o "+eur(bonusRed)+"/mes.",cit:"§ 33 ods. 11"}:null,
+      !dbOtecMozne?{ok:false,text:"VÝLUKA pre otca: dieťa nežije v jeho domácnosti",cit:"§ 33 ods. 2"}:null].filter(Boolean)});
+
+  /* — príspevok na starostlivosť — */
+  if(s.planSkolka){
+    const max={zariadenie:280,detskaSkupina:160,statnaMS:80,inaOsoba:41.10}[s.skolkaTyp];
+    const sMes=Math.min(s.skolkaTyp==="inaOsoba"?41.10:s.skolkaUhrada,max);
+    V.push({id:"prispevok_na_starostlivost",stav:"podmieneny",od:rpOd,do:horizont,mesacne:sMes,suma:0,
+      dovody:[pod(true,"úhrada "+eur(s.skolkaUhrada)+" → príspevok "+eur(sMes)+"/mes. (limit "+eur(max)+")","§ 5 zák. 561/2008"),
+        {ok:null,text:"ALTERNATÍVA k RP — za ten istý mesiac len jeden; oplatí sa len nad "+eur(rpMes),cit:"§ 4 ods. 4, § 6 ods. 4"},
+        pod(true,"rodič pracuje alebo študuje dennou formou; starostlivosť v SR","§ 4 ods. 1")]});
+  }
+
+  /* — hmotná núdza — */
+  if(s.nizkyPrijem){
+    const dosp=s.partner?2:1,detiHN=s.pocetNaraz+s.dalsieDeti;
+    const dv=P.davkyHodnoty.hmotnaNudza.davka;
+    const davka=dosp===1?(detiHN===0?dv.jednotlivec:detiHN<=4?dv.jednotlivecSDietatom:dv.jednotlivecViacAko4Deti)
+                        :(detiHN===0?dv.dvojica:detiHN<=4?dv.dvojicaSDietatom:dv.dvojicaViacAko4Deti);
+    const clenov=dosp+detiHN;
+    const byv=s.hnByvanie?(P.davkyHodnoty.hmotnaNudza.byvanie[String(Math.min(clenov,5))]??P.davkyHodnoty.hmotnaNudza.byvanie["5+"]):0;
+    const ochranny=(s.faza==="tehotna"||(!s.partner&&dDiff(B,TODAY)<365&&dDiff(B,TODAY)>=0))?88.40:0;
+    const prisDeti=24.20*Math.min(s.dalsieDeti,s.dalsieNezaopatrene);
+    const hn=Math.max(0,davka+byv+ochranny+prisDeti-s.hnPrijem);
+    V.push({id:"hmotna_nudza",stav:hn>0?"podmieneny":"bez",od:TODAY,do:horizont,mesacne:hn,suma:0,
+      dovody:[pod(true,"dávka "+eur(davka)+" ("+(dosp===1?"jednotlivec":"dvojica")+(detiHN?" + "+detiHN+" detí":"")+")","§ 10 zák. 417/2013"),
+        ochranny?{ok:true,text:"ochranný príspevok "+eur(ochranny)+" — "+(s.faza==="tehotna"?"tehotná od 8. týždňa pred pôrodom":"osamelý rodič s dieťaťom do 1 roka"),cit:"§ 7 ods. 2, § 11"}:null,
+        byv?{ok:true,text:"príspevok na bývanie "+eur(byv)+" ("+clenov+" členov)",cit:"§ 14"}:null,
+        prisDeti?{ok:true,text:"príspevok na deti v škole "+eur(prisDeti),cit:"§ 13"}:null,
+        {ok:null,text:"mínus príjem "+eur(s.hnPrijem)+" → odhad "+eur(hn)+"/mes.; PODMIENENÉ posúdením majetku (materské sa počíta 75 %, prídavok a bonus sa nezapočítavajú, RP áno)",cit:"§ 4, § 7–9"}].filter(Boolean)});
+    if(s.dalsieNezaopatrene>0)V.push({id:"dotacie_strava_skola",stav:"podmieneny",od:TODAY,do:horizont,suma:0,
+      dovody:[pod(true,"strava 1,40 – 2,30 €/deň; školské potreby 33,20 €/rok","§ 4 zák. 544/2010")]});
+  }
+
+  if(s.neplateneVyzivne&&!s.partner){
+    V.push({id:"nahradne_vyzivne",stav:"podmieneny",od:TODAY,do:horizont,suma:0,
+      dovody:[pod(true,"vo výške súdom určeného nezaplateného výživného (treba návrh na exekúciu); sirotské prípady 0,7 × ŽM = "+eur(0.7*134.80),"§ 2, § 4 zák. 201/2008")]});
+  }
+
+  if(s.faza==="nahradna"){
+    const zm=134.80;
+    V.push({id:"nahradna_starostlivost",stav:"podmieneny",od:B,do:horizont,mesacne:2*zm+1.95*zm,
+      suma:829.86+(2*zm+1.95*zm)*Math.max(0,Math.round(dDiff(B,horizont)/30.4167)),
+      dovody:[pod(true,"jednorazový pri zverení 829,86 €","§ 3 zák. 627/2005"),
+        pod(true,"opakovaný dieťaťu 2 × ŽM = "+eur(2*zm)+"/mes.; náhradnému rodičovi 1,95 × ŽM = "+eur(1.95*zm)+"/mes. (nie pre príbuzného v priamom rade)","§ 5, § 6"),
+        s.zdravDieta==="tzp"?{ok:true,text:"osobitný opakovaný (ŤZP) 2,4 × ŽM = "+eur(2.4*zm)+"/mes.",cit:"§ 7"}:null,
+        {ok:null,text:"PODMIENENÉ rozhodnutím súdu",cit:"§ 1 ods. 2"}].filter(Boolean)});
+  }
+
+  if(s.umrtie!=="nie"){
+    V.push({id:"prispevok_na_pohreb",stav:pobytOK?"narok":"bez",od:umrtieTs??B,do:umrtieTs??B,suma:pobytOK?200:0,
+      dovody:[pod(true,"200 € jednorazovo osobe, ktorá zabezpečila pohreb","§ 3, § 4 zák. 238/1998"),
+        pod(pobytOK,"pobyt oprávnenej osoby aj zomretého v SR","§ 3 ods. 1")]});
+  }
+
+  if(s.zdravDieta==="tzp"){
+    V.push({id:"tzp_kompenzacie",stav:"podmieneny",od:addY(B,6),do:horizont,suma:0,
+      dovody:[pod(true,"opatrovanie 729 €/mes. + 200 €/mes. príplatok za dieťa (od 1. 7. 2026); osobná asistencia 6,81 €/h","§ 20, § 40 zák. 447/2008"),
+        {ok:null,text:"PODMIENENÉ posudkom ÚPSVaR (miera funkčnej poruchy ≥ 50 %)",cit:"§ 2, § 3"}]});
+  }
+
+  V.push({id:"zdravotne_poistenie_stat",stav:"narok",od:B,do:horizont,suma:0,info:true,
+    dovody:[pod(true,"za novorodenca, poberateľa materského/RP a rodiča starajúceho sa o dieťa do 6 r. platí ZP štát; novorodenca prihlásiť do 60 dní","§ 6, § 11 ods. 7 zák. 580/2004")]});
+  V.push({id:"pracovnopravna_ochrana",stav:"narok",od:matOd??B,do:horizont,suma:0,info:true,
+    dovody:[pod(true,"materská dovolenka "+(s.umrtie==="mrtve"?"14 týž.":(viac?"43":"34/37")+" týž.")+"; otcovská "+(viac?"37":"28/31")+" týž.; rodičovská do 3 (6) rokov; zákaz výpovede","§ 64, § 166, § 168 Zákonníka práce")]});
+  V.push({id:"statne_dochodkove_poistenie",stav:"narok",od:addD(B,1),do:horizont,suma:0,info:true,
+    dovody:[pod(true,"štát platí dôchodkové poistenie rodičovi starajúcemu sa o dieťa do 6 r. (18 pri nepriaznivom stave); prihláška = trvanie nároku na RP","§ 15 zák. 461/2003")]});
+
+  const total=V.filter(v=>v.stav==="narok"&&!v.info).reduce((x,v)=>x+(v.suma||0),0);
+  const poistne=(am?am.poistne:0)+(ao?ao.poistne:0);
+  return {V,am,ao,B,R,D,total,poistne,horizont,rpMes,matOk:am?(probM&&probM.p>0):false,matOd,matDo,matDenna,tyzdne,probM,probO,maSamOtec};
+}
+
+/* ═══ výsledok ═══ */
+const NAZVY={};RB.davky.forEach(d=>NAZVY[d.id]={n:d.nazov,z:d.zakon,p:{SP:"Sociálna poisťovňa",UPSVAR:"ÚPSVaR",FS:"Finančná správa / zamestnávateľ",SKOLA:"škola",OBEC:"obec"}[d.platca]||d.platca});
+window.prepniZbal=si=>{APP.scenare[si].zbaleny=!APP.scenare[si].zbaleny;render();};
+function vVysledok(s,si){
+  const E=vyhodnot(s);
+  const naroky=E.V.filter(v=>v.stav==="narok"&&!v.info),podm=E.V.filter(v=>v.stav==="podmieneny");
+  const rizika=E.V.filter(v=>v.pravdepodobnost!==undefined&&v.pravdepodobnost>0&&v.pravdepodobnost<0.995&&v.stav!=="bez");
+  let h='<div class="hero" onclick="prepniZbal('+si+')" title="Kliknutím zbalíte/rozbalíte detail">'+
+    '<span class="fold">'+(s.zbaleny?"▸ rozbaliť":"▾ zbaliť")+'</span>'+
+    '<div class="lbl">Scenár '+(si+1)+' — odhad podpory pre dieťa '+(E.R.narodene?"narodené ":"s najpravdepodobnejším narodením ")+dtxt(E.B)+' (do '+fmtD(E.horizont)+')</div>'+
+    '<div class="big">'+eur(E.total)+'</div>'+
+    '<div class="sub">'+naroky.length+' dávok s nárokom · '+podm.length+' podmienených'+
+      (rizika.length?' · <b>⚠ '+rizika.map(v=>(NAZVY[v.id]||{n:v.id}).n+" "+Math.round(v.pravdepodobnost*100)+" %").join(", ")+'</b>':"")+
+      (s.valorizacia?' · rast +'+s.rastPct+' %/rok':"")+'</div>'+
+    '<div class="hero-grid">'+
+      '<div><div class="k">Jednorazovo pri narodení</div><div class="v">'+eur((E.V.find(v=>v.id==="prispevok_pri_narodeni")||{}).suma||0)+'</div></div>'+
+      '<div><div class="k">Materské + tehotenské</div><div class="v">'+eur(E.V.filter(v=>["tehotenske","materske_matka","materske_otec_14dni"].includes(v.id)&&v.stav!=="bez").reduce((x,v)=>x+(v.suma||0),0))+'</div></div>'+
+      '<div><div class="k">Rodičovský príspevok</div><div class="v">'+eur((E.V.find(v=>v.id==="rodicovsky_prispevok")||{}).suma||0)+'</div></div>'+
+      '<div><div class="k">Zaplatené poistné</div><div class="v">−'+eur(E.poistne)+'</div></div>'+
+    '</div></div>';
+  if(s.zbaleny)return h+'<div class="nav"><button class="btn" onclick="go('+si+',-1)">← Späť</button><span></span></div>';
+
+  h+='<div class="vysl">';
+  const rank={narok:0,podmieneny:1,bez:2};
+  for(const v of E.V.slice().sort((a,b)=>rank[a.stav]-rank[b.stav])){
+    const nz=NAZVY[v.id]||{n:v.id,z:"",p:""};
+    const prob=v.pravdepodobnost!==undefined&&v.pravdepodobnost<0.995&&v.stav!=="bez";
+    const cls=(v.stav==="narok"?"yes":v.stav==="podmieneny"?"cond":"no")+(prob?" prob":"");
+    const amt=v.info?"":v.stav==="bez"?"—":v.suma?eur(v.suma):(v.mesacne?eur(v.mesacne)+"/mes.":"—");
+    h+='<div class="ben '+cls+'"><div class="bh"><div><div class="bt">'+nz.n+'</div><div class="bsub">'+nz.p+' · '+nz.z+
+      (v.od&&v.do&&v.od!==v.do?' · '+fmtD(v.od)+' – '+fmtD(v.do):v.od?' · '+fmtD(v.od):"")+'</div></div>'+
+      '<div style="text-align:right"><div class="amt">'+amt+'</div><span class="tag '+(prob?"prob":cls)+'">'+
+      (prob?"nárok s P = "+Math.round(v.pravdepodobnost*100)+" %":v.stav==="narok"?(v.info?"nárok zo zákona":"nárok"):v.stav==="podmieneny"?"podmienený":"bez nároku")+'</span></div></div>'+
+      '<ul>'+v.dovody.map(d=>'<li class="'+(d.ok===false?"fail":d.ok===null?"condi":"")+'">'+(d.ok===true?"✓ ":d.ok===false?"✕ ":"◈ ")+d.text+(d.cit?' <span class="cit">['+d.cit+']</span>':"")+'</li>').join("")+'</ul></div>';
+  }
+  h+='</div>';
+  h+='<div class="karta"><h3>Časová os</h3>'+gantt(E)+'</div>';
+  const rows=mesacne(s,E);
+  h+='<div class="karta"><h3>Mesačný príjem z dávok</h3>'+chart(rows,E)+tabulka(rows)+'</div>';
+  h+='<div class="karta"><h3>Predpoklady (2026)</h3><details><summary>Použité veličiny a pravidlá</summary><div class="kv">'+
+    kv("Max. DVZ",P.maxDVZ.hodnota+" € — "+P.maxDVZ.vzorec)+
+    kv("Min. mesačný VZ",eur(P.minVZmesacny.hodnota))+
+    kv("Dobrovoľné poistenie",(P.sadzby.dobrovolnyBalikSpolu*100).toFixed(2)+" % balík")+
+    kv("Rodičovský príspevok","364,80 / 500,10 € (opatrenie 366/2025)")+
+    kv("Rozdelenie pôrodu","N(μ, σ = "+(s.datumRezim==="lekar"?9:10)+" dní), ±35 dní"+(s.datumRezim==="soulozi"?"; oplodnenie +266 dní":s.datumRezim==="menstruacia"?"; LMP +280 dní":""))+
+    (s.valorizacia?kv("Rast veličín","+"+s.rastPct+" %/rok (RP od 1. 1. 2027; prídavok a bonus bez mechanizmu — konštantné)"):"")+
+    RB.kolizie.map(k=>kv(k.pravidlo,k.cit)).join("")+
+  '</div></details>'+
+  '<div class="note">Orientačný výpočet. DVZ je odhad podľa § 54–57; presnú sumu určí Sociálna poisťovňa. Pravdepodobnosti vychádzajú z normálneho rozdelenia dňa pôrodu.</div></div>';
+  h+='<div class="nav"><button class="btn" onclick="go('+si+',-1)">← Späť</button><button class="btn primary" onclick="kopirujScenar('+si+')">⧉ Kopírovať ako nový scenár</button></div>';
+  return h;
+}
+const kv=(a,b)=>'<span>'+a+'</span><b>'+b+'</b>';
+
+function gantt(E){
+  const t0=TODAY,t1=E.horizont,span=dDiff(t0,t1)||1;
+  const px=t=>Math.min(100,Math.max(0,dDiff(t0,t)/span*100));
+  const colors={tehotenske:"var(--c-stud)",tehotenske_stipendium:"var(--c-stud)",materske_matka:"var(--c-zam)",materske_otec_14dni:"var(--c-szco)",materske_iny_poistenec:"var(--c-szco)",rodicovsky_prispevok:"var(--c-dobr)",pridavok_na_dieta:"var(--gov2)",danovy_bonus:"var(--c-sil)",hmotna_nudza:"var(--warn)",prispevok_na_starostlivost:"var(--c-rd)",nahradna_starostlivost:"var(--c-dobr)",prispevok_viac_deti:"var(--gov2)",socialne_stipendium_vs:"var(--c-stud)"};
+  let h='<div class="gantt"><div class="marks"><span class="m now" style="left:'+px(TODAY)+'%">dnes '+fmtD(TODAY)+'</span><span class="m pdd" style="left:'+px(E.B)+'%">'+(E.R.narodene?"pôrod":"pôrod (μ)")+' '+fmtD(E.B)+'</span></div>';
+  for(const v of E.V){
+    if(v.stav==="bez"||v.info||v.infoCudzi)continue;
+    const nz=NAZVY[v.id]||{n:v.id};
+    if(v.id==="prispevok_pri_narodeni"||v.id==="prispevok_na_pohreb"){
+      h+='<div class="row"><div class="nm">'+nz.n+'</div><div class="track"><div class="vline now" style="left:'+px(TODAY)+'%"></div><div class="vline pdd" style="left:'+px(E.B)+'%"></div><div class="pt" style="left:'+px(v.od)+'%;background:var(--red)"></div></div></div>';continue;}
+    if(!v.od||!v.do||v.do<=t0)continue;
+    h+='<div class="row"><div class="nm">'+nz.n+'</div><div class="track">'+
+      '<div class="vline now" style="left:'+px(TODAY)+'%"></div><div class="vline pdd" style="left:'+px(E.B)+'%"></div>'+
+      '<div class="fill" style="left:'+px(Math.max(v.od,t0))+'%;width:'+Math.max(.7,px(Math.min(v.do,t1))-px(Math.max(v.od,t0)))+'%;background:'+(colors[v.id]||"var(--gov)")+
+      (v.pravdepodobnost!==undefined&&v.pravdepodobnost<0.995?";opacity:"+(0.35+0.55*v.pravdepodobnost):"")+'">'+
+      '<span>'+(v.mesacne?eur0(v.mesacne)+"/mes.":v.denna?eur0(v.denna*30.4167)+"/mes.":"")+'</span></div></div></div>';
+  }
+  return h+'</div>';
+}
+function mesacne(s,E){
+  const rows=[];const first=Date.UTC(new Date(TODAY).getUTCFullYear(),new Date(TODAY).getUTCMonth(),1);
+  let m=first;
+  while(m<=E.horizont){
+    const me=addD(addM(m,1),-1);
+    const row={start:m,end:me,sum:0,parts:{}};
+    const plneVyplacane=["rodicovsky_prispevok","pridavok_na_dieta","danovy_bonus"];
+    for(const v of E.V){
+      if((v.stav!=="narok"&&!(v.stav==="podmieneny"&&(v.pravdepodobnost!==undefined||plneVyplacane.includes(v.id))))||v.info||v.infoCudzi)continue;
+      const w=v.pravdepodobnost!==undefined?v.pravdepodobnost:1; // vážené pravdepodobnosťou
+      let x=0;
+      if(v.id==="prispevok_pri_narodeni"||v.id==="prispevok_na_pohreb"){if(v.od>=m&&v.od<=me)x=v.suma;}
+      else if(v.denna){const a=Math.max(m,v.od),b=Math.min(me,v.do);if(b>=a)x=(dDiff(a,b)+1)*v.denna*w;}
+      else if(v.platby){for(const p2 of v.platby)if(p2>=m&&p2<=me)x+=v.mesacne*rastF(s,p2);}
+      else if(v.rocne){for(let y=1;y<=14;y++){const t=addY(E.B,y);if(t>=m&&t<=me&&t<=E.horizont)x+=v.rocne;}}
+      else if(v.mesacne&&v.stav==="narok"){const a=Math.max(m,v.od),b=Math.min(me,v.do);if(b>=a)x=v.mesacne;}
+      if(x){row.sum+=x;row.parts[v.id]=(row.parts[v.id]||0)+x;}
+    }
+    const rp=E.V.find(v=>v.id==="rodicovsky_prispevok");
+    if(rp&&rp.stav!=="bez"&&rp.dorovnanie>0&&E.matOk&&E.matDo){
+      const a=Math.max(m,Math.max(E.B,E.matOd)),b=Math.min(me,E.matDo);
+      if(b>=a){const x=rp.dorovnanie*(dDiff(a,b)+1)/30.4167;row.sum+=x;row.parts.dorovnanie=x;}
+    }
+    rows.push(row);m=addM(m,1);
+  }
+  return rows;
+}
+function chart(rows,E){
+  const W=1000,H=190,PT=8;
+  const maxM=Math.max(1,...rows.map(r=>r.sum));
+  const total=rows.reduce((x,r)=>x+r.sum,0)||1;
+  const bw=W/rows.length;
+  const colors={tehotenske:"#154873",tehotenske_stipendium:"#154873",materske_matka:"#166938",materske_otec_14dni:"#8a5a00",materske_iny_poistenec:"#8a5a00",rodicovsky_prispevok:"#5b3f8f",dorovnanie:"#5b3f8f",pridavok_na_dieta:"#0b6e8a",danovy_bonus:"#2b7a9e",prispevok_pri_narodeni:"#a71e22",prispevok_na_pohreb:"#444",prispevok_viac_deti:"#0b6e8a"};
+  let bars="",line="",cum=0;
+  rows.forEach((r,i)=>{
+    let y=H;const x=i*bw;
+    for(const k of Object.keys(r.parts)){const hg=(H-PT)*(r.parts[k]/maxM);y-=hg;
+      bars+='<rect x="'+(x+bw*.12)+'" y="'+y+'" width="'+(bw*.76)+'" height="'+hg+'" fill="'+(colors[k]||"#274268")+'" rx="1"/>';}
+    cum+=r.sum;line+=(i?" L":"M")+(x+bw/2)+" "+(PT+(H-PT)*(1-cum/total));
+  });
+  const iB=rows.findIndex(r=>E.B>=r.start&&E.B<=r.end);
+  return '<div class="scrollx"><svg class="chart" viewBox="0 0 '+W+' '+(H+22)+'" preserveAspectRatio="none">'+
+    '<line x1="0" y1="'+H+'" x2="'+W+'" y2="'+H+'" stroke="#8a949c" stroke-opacity=".4" vector-effect="non-scaling-stroke"/>'+
+    (iB>=0?'<line x1="'+(iB*bw+bw/2)+'" y1="0" x2="'+(iB*bw+bw/2)+'" y2="'+H+'" stroke="#a71e22" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>':"")+
+    bars+'<path d="'+line+'" fill="none" stroke="#1c2226" stroke-opacity=".55" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div>'+
+    '<div class="legend" style="justify-content:center"><span><i style="background:#a71e22"></i>pri narodení</span><span><i style="background:#154873"></i>tehotenské</span><span><i style="background:#166938"></i>materské matky</span><span><i style="background:#8a5a00"></i>materské otca</span><span><i style="background:#5b3f8f"></i>rodičovský</span><span><i style="background:#0b6e8a"></i>prídavok</span><span><i style="background:#2b7a9e"></i>daňový bonus</span></div>'+
+    '<div class="bar-ax"><span style="left:0">'+fmtD(rows[0].start)+'</span><span class="c" style="left:50%">max '+eur0(maxM)+'/mes.</span><span class="p" style="left:100%">'+fmtD(rows[rows.length-1].end)+'</span></div>'+
+    '<p class="hint">Dávky s pravdepodobnostným nárokom sú v grafe vážené pravdepodobnosťou (očakávaná hodnota).</p>';
+}
+function tabulka(rows){
+  const nz=rows.filter(r=>r.sum>0);
+  if(!nz.length)return"";
+  return '<details><summary>Mesačný rozpis ('+nz.length+' mesiacov s výplatou)</summary><div class="scrollx"><table><thead><tr><th>Mesiac</th><th>Spolu</th></tr></thead><tbody>'+
+    nz.map(r=>'<tr><td>'+new Intl.DateTimeFormat("sk-SK",{month:"long",year:"numeric"}).format(new Date(r.start))+'</td><td><b>'+eur(r.sum)+'</b></td></tr>').join("")+
+    '<tr class="tot"><td>Spolu</td><td>'+eur(nz.reduce((x,r)=>x+r.sum,0))+'</td></tr></tbody></table></div></details>';
+}
+
+/* štart */
+pridajScenar();
+</script>
+</body>
+</html>
